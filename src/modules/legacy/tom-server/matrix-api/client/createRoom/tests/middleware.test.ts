@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import Middleware from '../middlewares'
 import type { TwakeLogger } from '../../../../../logger'
 import type { NextFunction, Response } from 'express'
@@ -8,11 +8,11 @@ let mockRequest: Partial<AuthRequest>
 let mockResponse: Partial<Response>
 
 const loggerMock = {
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  debug: mock(),
-  silly: mock()
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  silly: vi.fn()
 }
 
 const validPresets = [
@@ -23,7 +23,7 @@ const validPresets = [
   'public_channel'
 ]
 
-const nextFunction: NextFunction = mock()
+const nextFunction: NextFunction = vi.fn()
 const middleware = new Middleware(
   loggerMock as unknown as TwakeLogger,
   validPresets,
@@ -40,9 +40,9 @@ beforeEach(() => {
   }
 
   mockResponse = {
-    json: mock().mockReturnThis(),
-    status: mock().mockReturnThis(),
-    send: mock()
+    json: vi.fn().mockReturnThis(),
+    status: vi.fn().mockReturnThis(),
+    send: vi.fn()
   }
 })
 
@@ -163,9 +163,9 @@ describe('the create room API middleware', () => {
     it('should forward the request and return the homeserver response for a space room', async () => {
       const mockFetchResponse = {
         status: 200,
-        json: mock().mockResolvedValue({ room_id: '!space:server.com' })
+        json: vi.fn().mockResolvedValue({ room_id: '!space:server.com' })
       }
-      global.fetch = mock().mockResolvedValue(mockFetchResponse)
+      global.fetch = vi.fn().mockResolvedValue(mockFetchResponse)
 
       await middleware.bypassIfSpace(
         {
@@ -197,7 +197,7 @@ describe('the create room API middleware', () => {
 
     it('should call next with the error if fetch throws', async () => {
       const fetchError = new Error('network failure')
-      global.fetch = mock().mockRejectedValue(fetchError)
+      global.fetch = vi.fn().mockRejectedValue(fetchError)
 
       await middleware.bypassIfSpace(
         {

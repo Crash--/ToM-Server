@@ -1,8 +1,7 @@
-import { afterEach, describe, expect, it, type Mock, mock } from "bun:test";
-
 import type { RequestHandler } from "express";
 import express from "express";
 import request from "supertest";
+import { afterEach, describe, expect, it, type Mock, vi } from "vitest";
 import { createLogger } from "winston";
 
 import { BAD_GATEWAY, NOT_FOUND, UNPROCESSABLE } from "../../errors/error-codes";
@@ -54,7 +53,7 @@ const json = (status: number, body: unknown): Response =>
   });
 
 const mockFetch = (...responses: Response[]): Mock<() => Promise<Response>> => {
-  const fetchMock: Mock<() => Promise<Response>> = mock();
+  const fetchMock: Mock<() => Promise<Response>> = vi.fn();
   for (const response of responses) {
     fetchMock.mockResolvedValueOnce(response);
   }
@@ -75,8 +74,8 @@ describe("VisioRouter", () => {
   });
 
   const setupDeps = (authenticate: RequestHandler = authenticated): MockedDeps => ({
-    authenticate: mock(authenticate),
-    resolveEmail: mock(() => Promise.resolve<string | null>("dwho@example.com")),
+    authenticate: vi.fn(authenticate),
+    resolveEmail: vi.fn(() => Promise.resolve<string | null>("dwho@example.com")),
   });
 
   const setupApp = (config: VisioSettings, deps: VisioDeps | undefined): express.Express => {

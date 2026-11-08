@@ -1,5 +1,4 @@
-import { afterEach, describe, expect, it, type Mock, mock } from "bun:test";
-
+import { afterEach, describe, expect, it, type Mock, vi } from "vitest";
 import { z } from "zod";
 
 import { HttpClient, readJson, UnreachableError } from "./http-client";
@@ -7,7 +6,9 @@ import { HttpClient, readJson, UnreachableError } from "./http-client";
 type FetchMock = Mock<(url: string, init: RequestInit) => Promise<Response>>;
 
 const mockFetch = (result: Response | Error): FetchMock => {
-  const fetchMock: FetchMock = mock(() => (result instanceof Error ? Promise.reject(result) : Promise.resolve(result)));
+  const fetchMock: FetchMock = vi.fn(() =>
+    result instanceof Error ? Promise.reject(result) : Promise.resolve(result),
+  );
   globalThis.fetch = fetchMock as unknown as typeof fetch;
 
   return fetchMock;

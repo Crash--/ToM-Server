@@ -1,11 +1,11 @@
-import { describe, expect, it, mock, test } from "bun:test"
+import { describe, expect, it, test, vi } from "vitest"
 import { TwakeLogger } from '../../logger'
 import type { Config } from '../types'
 import { SmsService } from './sms-service'
 
 const loggerMock = {
-  info: mock(),
-  error: mock()
+  info: vi.fn(),
+  error: vi.fn()
 }
 
 const mockConfig = {
@@ -22,7 +22,7 @@ describe('the SMS service', () => {
 
   describe('the send method', () => {
     it('should send a SMS', async () => {
-      global.fetch = mock().mockImplementation(() => {
+      global.fetch = vi.fn().mockImplementation(() => {
         return Promise.resolve({
           json: () => Promise.resolve({ success: true }),
           status: 200
@@ -34,7 +34,7 @@ describe('the SMS service', () => {
     })
 
     it('should log an error when failed to send SMS', async () => {
-      global.fetch = mock().mockImplementation(() => {
+      global.fetch = vi.fn().mockImplementation(() => {
         return Promise.resolve({
           json: () => Promise.resolve({}),
           status: 401
@@ -50,7 +50,7 @@ describe('the SMS service', () => {
     })
 
     it('should call the API endpoint with correct parameters', async () => {
-      global.fetch = mock().mockImplementation(() => {
+      global.fetch = vi.fn().mockImplementation(() => {
         return Promise.resolve({
           json: () => Promise.resolve({ success: true }),
           status: 200

@@ -1,5 +1,5 @@
 import { getLogger, type TwakeLogger } from '../../logger'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import type UserDBLDAP from './ldap'
 import defaultConfig from '../../defaultConfig.json'
 
@@ -162,7 +162,7 @@ describe('UserDBLDAP', () => {
 
   beforeAll(async () => {
     logger = getLogger()
-    mock.module('ldapts', () => ({
+    vi.doMock('ldapts', () => ({
       Client: FakeLDAPClient
     }))
     const module = await import('./ldap')
@@ -180,7 +180,7 @@ describe('UserDBLDAP', () => {
     })
 
     it('should log error on connection failure but still resolve ready promise', async () => {
-      const loggerErrorSpy = spyOn(logger, 'error')
+      const loggerErrorSpy = vi.spyOn(logger, 'error')
 
       userDB = createUserDB({
         ldapUri: 'ldap://nonexistent-host:63389',

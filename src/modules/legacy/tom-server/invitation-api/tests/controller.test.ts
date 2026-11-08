@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, test } from "bun:test"
+import { beforeEach, describe, expect, it, test, vi } from "vitest"
 import type { TwakeLogger } from '../../../logger'
 import type { MatrixDB, UserDB } from '../../../../matrix-identity-server'
 import type { Response, NextFunction } from 'express'
@@ -14,32 +14,32 @@ import type {
 type Mocked<T> = { [K in keyof T]: T[K] extends (...args: any[]) => any ? Mock<T[K]> : T[K] }
 
 const mockInvitationService: Mocked<IInvitationService> = {
-  invite: mock(),
-  accept: mock(),
-  list: mock(),
-  generateLink: mock(),
-  getInvitationStatus: mock(),
-  removeInvitation: mock()
+  invite: vi.fn(),
+  accept: vi.fn(),
+  list: vi.fn(),
+  generateLink: vi.fn(),
+  getInvitationStatus: vi.fn(),
+  removeInvitation: vi.fn()
 }
 
-mock.module('../services', () => {
-  return { default: mock().mockImplementation(() => mockInvitationService) }
+vi.mock('../services', () => {
+  return { default: vi.fn().mockImplementation(function () { return mockInvitationService }) }
 })
 
-mock.module('../../user-info-api/services', () => {
-  return { default: mock().mockImplementation(() => ({
-    get: mock().mockResolvedValue({ display_name: 'Test User' }),
-    getVisibility: mock(),
-    updateVisibility: mock()
-  })) }
+vi.mock('../../user-info-api/services', () => {
+  return { default: vi.fn().mockImplementation(function () { return {
+    get: vi.fn().mockResolvedValue({ display_name: 'Test User' }),
+    getVisibility: vi.fn(),
+    updateVisibility: vi.fn()
+  } }) }
 })
 
-mock.module('../../utils/services/notification-service', () => {
-  return { default: mock().mockImplementation(() => ({
-    sendEmail: mock(),
-    sendSMS: mock(),
+vi.mock('../../utils/services/notification-service', () => {
+  return { default: vi.fn().mockImplementation(function () { return {
+    sendEmail: vi.fn(),
+    sendSMS: vi.fn(),
     emailFrom: 'noreply@example.com'
-  })) }
+  } }) }
 })
 
 describe('InvitationApiController', () => {
@@ -51,20 +51,20 @@ describe('InvitationApiController', () => {
   let jsonSpy: Mock<(...args: any[]) => any>
 
   const dbMock = {
-    get: mock(),
-    insert: mock(),
-    update: mock(),
-    deleteEqual: mock()
+    get: vi.fn(),
+    insert: vi.fn(),
+    update: vi.fn(),
+    deleteEqual: vi.fn()
   } as unknown as TwakeDB
 
   const userDbMock = {} as unknown as UserDB
   const matrixDbMock = {} as unknown as MatrixDB
 
   const loggerMock = {
-    info: mock(),
-    error: mock(),
-    debug: mock(),
-    warn: mock()
+    info: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn()
   } as unknown as TwakeLogger
 
   const configMock = {
@@ -73,7 +73,7 @@ describe('InvitationApiController', () => {
   } as unknown as Config
 
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
 
     controller = new InvitationApiController(
       dbMock,
@@ -83,14 +83,14 @@ describe('InvitationApiController', () => {
       configMock
     )
 
-    statusSpy = mock().mockReturnThis()
-    jsonSpy = mock().mockReturnThis()
+    statusSpy = vi.fn().mockReturnThis()
+    jsonSpy = vi.fn().mockReturnThis()
 
     mockResponse = {
       status: statusSpy,
       json: jsonSpy
     }
-    mockNext = mock()
+    mockNext = vi.fn()
   })
 
   describe('sendInvitation', () => {

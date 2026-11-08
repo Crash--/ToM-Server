@@ -1,18 +1,18 @@
-import { beforeEach, describe, expect, it, mock, vi } from 'bun:test'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import Service from '../services'
 import type { Config } from '../../types'
 import { IAdminService } from '../types'
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
-const tokenServiceSpy = mock()
+const tokenServiceSpy = vi.fn()
 
-mock.module('../../utils/services/token-service.ts', () => {
+vi.mock('../../utils/services/token-service.ts', () => {
   return {
     default: function () {
       return {
@@ -40,7 +40,7 @@ describe('the admin service', () => {
   describe('the removeAccount method', () => {
     it('should try to get an admin access token', async () => {
       tokenServiceSpy.mockResolvedValueOnce('some_access_token')
-      global.fetch = mock()
+      global.fetch = vi.fn()
       await service.removeAccount('some_user_id')
 
       expect(tokenServiceSpy).toHaveBeenCalledWith('admin', 'XXXXX')
@@ -48,9 +48,9 @@ describe('the admin service', () => {
 
     it('should call the deleteUserMedia and disableUserAccount methods', async () => {
       tokenServiceSpy.mockResolvedValueOnce('some_access_token')
-      global.fetch = mock()
-      service.deleteUserMedia = mock()
-      service.disableUserAccount = mock()
+      global.fetch = vi.fn()
+      service.deleteUserMedia = vi.fn()
+      service.disableUserAccount = vi.fn()
 
       await service.removeAccount('some_user_id')
 
@@ -66,26 +66,26 @@ describe('the admin service', () => {
 
     it('should throw an error if it fails to obtain an admin access token', async () => {
       tokenServiceSpy.mockRejectedValueOnce(new Error('some_error'))
-      global.fetch = mock()
+      global.fetch = vi.fn()
 
       await expect(service.removeAccount('some_user_id')).rejects.toThrow()
     })
 
     it('should throw an error if something wrong happens while calling the deleteUserMedia method', async () => {
       tokenServiceSpy.mockResolvedValueOnce('some_access_token')
-      global.fetch = mock()
-      service.deleteUserMedia = mock()
+      global.fetch = vi.fn()
+      service.deleteUserMedia = vi.fn()
         .mockRejectedValueOnce(new Error('some_error'))
-      service.disableUserAccount = mock()
+      service.disableUserAccount = vi.fn()
 
       await expect(service.removeAccount('some_user_id')).rejects.toThrow()
     })
 
     it('should throw an error if something weong happens while calling the disableUserAccount method', async () => {
       tokenServiceSpy.mockResolvedValueOnce('some_access_token')
-      global.fetch = mock()
-      service.deleteUserMedia = mock()
-      service.disableUserAccount = mock()
+      global.fetch = vi.fn()
+      service.deleteUserMedia = vi.fn()
+      service.disableUserAccount = vi.fn()
         .mockRejectedValueOnce(new Error('some_error'))
 
       await expect(service.removeAccount('some_user_id')).rejects.toThrow()
@@ -94,9 +94,9 @@ describe('the admin service', () => {
 
   describe('the deleteUserMedia method', () => {
     it('should call the synapse admin API to delete user media', async () => {
-      global.fetch = mock().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: mock().mockResolvedValue({ total: 1 })
+        json: vi.fn().mockResolvedValue({ total: 1 })
       })
 
       await service.deleteUserMedia('some_user_id', 'some_access_token')
@@ -113,7 +113,7 @@ describe('the admin service', () => {
     })
 
     it('should log an error if the synapse admin API call fails', async () => {
-      global.fetch = mock().mockRejectedValue(new Error('some_error'))
+      global.fetch = vi.fn().mockRejectedValue(new Error('some_error'))
 
       await service.deleteUserMedia('some_user_id', 'some_access_token')
 
@@ -121,8 +121,8 @@ describe('the admin service', () => {
     })
 
     it('should log an error if the synapse admin API returns a bad response', async () => {
-      global.fetch = mock().mockResolvedValue({
-        json: mock().mockResolvedValue({ somethingelse: true })
+      global.fetch = vi.fn().mockResolvedValue({
+        json: vi.fn().mockResolvedValue({ somethingelse: true })
       })
 
       await service.deleteUserMedia('some_user_id', 'some_access_token')
@@ -133,9 +133,9 @@ describe('the admin service', () => {
 
   describe('the disableUserAccount', () => {
     it('should call the synapse admin API to disable the user account', async () => {
-      global.fetch = mock().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
-        json: mock().mockResolvedValue({ total: 1 })
+        json: vi.fn().mockResolvedValue({ total: 1 })
       })
 
       await service.disableUserAccount('some_user_id', 'some_access_token')
@@ -154,7 +154,7 @@ describe('the admin service', () => {
     })
 
     it('should throw an error if the synapse admin API call fails', async () => {
-      global.fetch = mock().mockRejectedValue(new Error('some_error'))
+      global.fetch = vi.fn().mockRejectedValue(new Error('some_error'))
 
       await expect(
         service.disableUserAccount('some_user_id', 'some_access_token')

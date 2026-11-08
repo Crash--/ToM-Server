@@ -5,19 +5,19 @@ import router, { PATH } from '../routes'
 import type { AuthRequest, Config, TwakeDB } from '../../types'
 import supertest from 'supertest'
 import { MatrixDBBackend } from '../../../../matrix-identity-server'
-import { describe, expect, it, mock, test } from 'bun:test'
+import { describe, expect, it, test, vi } from 'vitest'
 
 const app = express()
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
-const serviceSpy = mock()
+const serviceSpy = vi.fn()
 
-mock.module('../services/index.ts', () => {
+vi.mock('../services/index.ts', () => {
   return {
     default: function () {
       return {
@@ -27,7 +27,7 @@ mock.module('../services/index.ts', () => {
   }
 })
 
-mock.module('../middlewares/index.ts', () => {
+vi.mock('../middlewares/index.ts', () => {
   const passiveMiddleware = (
     _req: Request,
     _res: Response,

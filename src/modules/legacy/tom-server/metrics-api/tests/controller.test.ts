@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, test } from 'bun:test'
+import { describe, expect, it, test, vi } from 'vitest'
 import bodyParser from 'body-parser'
 import express, { type NextFunction, type Response } from 'express'
 import supertest from 'supertest'
@@ -66,26 +66,26 @@ const messages = [
 const app = express()
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
-const authenticatorMock = mock()
+const authenticatorMock = vi.fn()
   .mockImplementation((_req, _res, callbackMethod) => {
     callbackMethod('test', 'test')
   })
 
-mock.module('../middlewares/index.ts', () => {
+vi.mock('../middlewares/index.ts', () => {
   const passiveMiddlewareMock = (
     _req: AuthRequest,
     _res: Response,

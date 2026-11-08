@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from "bun:test"
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from "vitest"
+import { withDone } from '../../../with-done'
 import { type ConfigDescription } from '../../../../config-parser'
 import { type TwakeLogger } from '../../../logger'
 import { IdentityServerDb, type MatrixDB } from '../../../matrix-identity-server'
@@ -16,19 +17,19 @@ import { type Config } from '../../types'
 import { type expressAppHandler } from '../utils'
 import isAuth, { type tokenDetail } from './auth'
 
-const fetchMock = mock()
-mock.module('node-fetch', () => ({ default: fetchMock }))
+const fetchMock = vi.hoisted(() => vi.fn())
+vi.mock('node-fetch', () => ({ default: fetchMock }))
 
 interface ITestRequest extends Partial<Request> {
   token?: tokenDetail
 }
 
 const mockLogger: Partial<TwakeLogger> = {
-  debug: mock(),
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  close: mock()
+  debug: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  close: vi.fn()
 }
 
 const token: tokenDetail = {
@@ -48,21 +49,21 @@ const matrixServerResponseBody = {
 }
 
 const mockRequestDefaultProperties: Partial<Request> = {
-  app: { get: mock().mockReturnValue(false) } as unknown as Application,
+  app: { get: vi.fn().mockReturnValue(false) } as unknown as Application,
   ip: '192.168.1.1',
   socket: { remoteAddress: '192.168.1.1' } as any
 }
 
-spyOn(IdentityServerDb.prototype, 'get')
+vi.spyOn(IdentityServerDb.prototype, 'get')
   .mockResolvedValue([{ id: token.value, data: JSON.stringify(token.content) }])
 
-spyOn(IdentityServerDb.prototype, 'insert')
+vi.spyOn(IdentityServerDb.prototype, 'insert')
   .mockResolvedValue([{ id: token.value, data: JSON.stringify(token.content) }])
 
 // Use in-memory databases to avoid conflicts between parallel test workers
 const idServer = new IdServer(
   {
-    get: mock()
+    get: vi.fn()
   } as unknown as MatrixDB,
   {} as unknown as Config,
   {
@@ -93,29 +94,29 @@ describe('Auth middleware', () => {
   let spyOnLoggerError: any
   let mockRequest: ITestRequest
   let mockResponse: Partial<Response>
-  const nextFunction: NextFunction = mock()
-  beforeAll((done) => {
+  const nextFunction: NextFunction = vi.fn()
+  beforeAll(withDone((done) => {
     idServer.ready
       .then((_) => {
         mockResponse = {
-          writeHead: mock(),
-          write: mock(),
-          send: mock(),
-          end: mock()
+          writeHead: vi.fn(),
+          write: vi.fn(),
+          send: vi.fn(),
+          end: vi.fn()
         }
-        spyOnLoggerWarn = spyOn(idServer.logger, 'warn')
-        spyOnLoggerDebug = spyOn(idServer.logger, 'debug')
-        spyOnLoggerError = spyOn(idServer.logger, 'error')
+        spyOnLoggerWarn = vi.spyOn(idServer.logger, 'warn')
+        spyOnLoggerDebug = vi.spyOn(idServer.logger, 'debug')
+        spyOnLoggerError = vi.spyOn(idServer.logger, 'error')
         done()
       })
       .catch((e) => {
         done(e)
       })
-  })
+  }))
 
   beforeEach(() => {
     fetchMock.mockResolvedValue({
-      json: mock().mockResolvedValue(matrixServerResponseBody)
+      json: vi.fn().mockResolvedValue(matrixServerResponseBody)
     })
     mockRequest = {
       ...mockRequestDefaultProperties,
@@ -124,7 +125,7 @@ describe('Auth middleware', () => {
       }
     }
     mockRequest.token = undefined
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   afterAll(() => {
@@ -153,7 +154,7 @@ describe('Auth middleware', () => {
   })
 
   it('should add access_token in database if no entry found and user is already authenticated on matrix server', async () => {
-    spyOn(idServer.db, 'get').mockResolvedValue([])
+    vi.spyOn(idServer.db, 'get').mockResolvedValue([])
     const handler: expressAppHandler = isAuth(idServer.authenticate)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -166,7 +167,7 @@ describe('Auth middleware', () => {
 
   it('should retrieve token from matrix server if an error occured on retrieving associated entry in database', async () => {
     const errorDb = new Error('An error occured in the database')
-    spyOn(idServer.db, 'get').mockRejectedValue(errorDb)
+    vi.spyOn(idServer.db, 'get').mockRejectedValue(errorDb)
     const handler: expressAppHandler = isAuth(idServer.authenticate)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -254,9 +255,9 @@ describe('Auth middleware', () => {
 
   it('should send response with 401 unauthorized error if request to Matrix server failed', async () => {
     const errorMatrixServer = new Error('An error occured with Matrix Server')
-    spyOn(idServer.db, 'get').mockResolvedValue([])
+    vi.spyOn(idServer.db, 'get').mockResolvedValue([])
     fetchMock.mockResolvedValue({
-      json: mock().mockRejectedValue(errorMatrixServer)
+      json: vi.fn().mockRejectedValue(errorMatrixServer)
     })
     const handler: expressAppHandler = isAuth(idServer.authenticate)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
@@ -274,9 +275,9 @@ describe('Auth middleware', () => {
 
   it('should send response with 401 unauthorized error if user is not authenticated on matrix server', async () => {
     const userInfo = { ...matrixServerResponseBody, user_id: null }
-    spyOn(idServer.db, 'get').mockResolvedValue([])
+    vi.spyOn(idServer.db, 'get').mockResolvedValue([])
     fetchMock.mockResolvedValue({
-      json: mock().mockResolvedValue(userInfo)
+      json: vi.fn().mockResolvedValue(userInfo)
     })
     const handler: expressAppHandler = isAuth(idServer.authenticate)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
@@ -290,8 +291,8 @@ describe('Auth middleware', () => {
 
   it('should call console.error function if insert access_token in database failed', async () => {
     const errorDb = new Error('An error occured in the database')
-    spyOn(idServer.db, 'get').mockResolvedValue([])
-    spyOn(idServer.db, 'insert').mockRejectedValue(errorDb)
+    vi.spyOn(idServer.db, 'get').mockResolvedValue([])
+    vi.spyOn(idServer.db, 'insert').mockRejectedValue(errorDb)
     const handler: expressAppHandler = isAuth(idServer.authenticate)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))

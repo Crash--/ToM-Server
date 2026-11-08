@@ -1,19 +1,19 @@
 import fs from "node:fs";
 import path from "node:path";
-import { afterAll, afterEach, beforeEach, describe, expect, it, mock, spyOn, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
 import { ConfigCoercionError, FileReadParseError, MissingRequiredConfigError, UnacceptedKeyError } from "./errors";
 import twakeConfig from "./index";
 import type { ConfigDescription, Configuration } from "./types";
 
-// bun:test's mock.module() doesn't apply mock functions to node: builtins, so we
-// spy on the shared node:fs object instead (both this test and ./index use it).
+// node: builtins are not module-mocked here, so we spy on the shared node:fs
+// object instead (both this test and ./index use it).
 // These spies patch the worker-wide node:fs module, so they MUST be restored when
 // this file ends, otherwise later test files in the same worker read ENOENTs.
-const readFileSyncSpy = spyOn(fs, "readFileSync");
-const existsSyncSpy = spyOn(fs, "existsSync");
-const writeFileSyncSpy = spyOn(fs, "writeFileSync");
-const mkdirSyncSpy = spyOn(fs, "mkdirSync");
-const promisesReadFileSpy = spyOn(fs.promises, "readFile");
+const readFileSyncSpy = vi.spyOn(fs, "readFileSync");
+const existsSyncSpy = vi.spyOn(fs, "existsSync");
+const writeFileSyncSpy = vi.spyOn(fs, "writeFileSync");
+const mkdirSyncSpy = vi.spyOn(fs, "mkdirSync");
+const promisesReadFileSpy = vi.spyOn(fs.promises, "readFile");
 
 void [readFileSyncSpy, existsSyncSpy, writeFileSyncSpy, mkdirSyncSpy, promisesReadFileSpy];
 
@@ -400,14 +400,14 @@ describe("twakeConfig - Side Effects", () => {
 });
 
 describe("twakeConfig - Edge Cases and Error Handling", () => {
-  let consoleWarnSpy: ReturnType<typeof spyOn>;
+  let consoleWarnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     clearEnv();
     (fs.promises.readFile as Mock<(...args: any[]) => any>).mockClear();
     (fs.readFileSync as Mock<(...args: any[]) => any>).mockClear();
     (fs.existsSync as Mock<(...args: any[]) => any>).mockClear();
-    consoleWarnSpy = spyOn(console, "warn").mockImplementation(() => {});
+    consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {

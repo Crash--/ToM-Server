@@ -1,21 +1,21 @@
-import { afterEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import Service from '../services'
 import { type MatrixDBBackend } from '../../../../matrix-identity-server'
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
 const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000
@@ -74,7 +74,7 @@ const messages = [
 ]
 
 afterEach(() => {
-  mock.restore()
+  vi.restoreAllMocks()
 })
 
 describe('the Metrics API Service', () => {

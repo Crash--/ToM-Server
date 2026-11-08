@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 import DisplayNameController from '../controllers'
 import type DisplayNameService from '../services'
 import { errCodes } from '../../../../../utils'
@@ -14,10 +14,10 @@ describe('DisplayNameController', () => {
 
   beforeEach(() => {
     mockLogger = {
-      info: mock(),
-      warn: mock(),
-      error: mock(),
-      debug: mock()
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn()
     }
     mockConfig = {
       features: {
@@ -25,17 +25,17 @@ describe('DisplayNameController', () => {
       }
     }
     mockService = {
-      update: mock()
+      update: vi.fn()
     }
     controller = new DisplayNameController(mockConfig, mockLogger)
     // Override the internal service with our mock
     ;(controller as any).displayNameService = mockService
 
     mockRes = {
-      status: mock().mockReturnThis(),
-      json: mock()
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
     }
-    next = mock()
+    next = vi.fn()
   })
 
   it('should return 400 if authorization header is missing', async () => {

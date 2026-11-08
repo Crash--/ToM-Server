@@ -1,10 +1,10 @@
-import { beforeEach, describe, expect, it, mock } from "bun:test";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let userInfo: unknown = {};
-mock.module("node-fetch", () => ({
+vi.mock("node-fetch", () => ({
   default: async () => ({ json: async () => userInfo }),
 }));
-mock.module("../../matrix-resolve/index", () => ({
+vi.mock("../../matrix-resolve/index", () => ({
   MatrixResolve: class {
     async resolve(): Promise<string> {
       return "https://hs.test/";
@@ -14,7 +14,7 @@ mock.module("../../matrix-resolve/index", () => ({
 
 const { default: validateMatrixToken } = await import("./validateMatrixToken");
 
-const logger = { warn: mock(), info: mock(), error: mock() };
+const logger = { warn: vi.fn(), info: vi.fn(), error: vi.fn() };
 const validate = validateMatrixToken(logger as never);
 
 describe("validateMatrixToken", () => {

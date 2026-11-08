@@ -1,7 +1,6 @@
-import { afterEach, beforeAll, describe, expect, it, type Mock, mock } from "bun:test";
-
 import { Router } from "express";
 import request from "supertest";
+import { afterEach, beforeAll, describe, expect, it, type Mock, vi } from "vitest";
 import { createLogger } from "winston";
 
 import { createApp } from "./app";
@@ -12,7 +11,7 @@ const ROUTE = "/_twake/v1/video_call/rooms";
 const ROOM_URL = "https://visio.example.com/abc-defg-hij";
 const TOKEN = "syt_matrix_token";
 
-mock.module("./modules/legacy/router", () => ({
+vi.mock("./modules/legacy/router", () => ({
   createLegacyRouter: () => Promise.resolve(Router()),
 }));
 
@@ -56,7 +55,7 @@ interface Homeserver {
 // Routes the fetch calls of the whole chain: whoami, 3pid, visio token, visio room
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: one branch per endpoint
 const mockFetch = ({ userId, email }: Homeserver): FetchMock => {
-  const fetchMock: FetchMock = mock((url: string) => {
+  const fetchMock: FetchMock = vi.fn((url: string) => {
     if (url.endsWith("/account/whoami")) {
       return Promise.resolve(
         userId
@@ -176,7 +175,7 @@ describe("createApp video call rooms", () => {
 
   it("should answer 502 M_BAD_GATEWAY when the homeserver is unreachable", async () => {
     // Arrange
-    globalThis.fetch = mock(() => Promise.reject(new TypeError("fetch failed"))) as unknown as typeof fetch;
+    globalThis.fetch = vi.fn(() => Promise.reject(new TypeError("fetch failed"))) as unknown as typeof fetch;
     const app = await createApp(config, silentLogger, undefined);
 
     // Act
@@ -189,7 +188,7 @@ describe("createApp video call rooms", () => {
 
   it("should answer 502 M_BAD_GATEWAY when the homeserver fails", async () => {
     // Arrange
-    globalThis.fetch = mock(() => Promise.resolve(json(500, {}))) as unknown as typeof fetch;
+    globalThis.fetch = vi.fn(() => Promise.resolve(json(500, {}))) as unknown as typeof fetch;
     const app = await createApp(config, silentLogger, undefined);
 
     // Act

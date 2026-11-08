@@ -1,5 +1,5 @@
 import { getServerNameFromMatrixId } from './utils'
-import { describe, expect, it, test } from 'bun:test'
+import { describe, expect, it, test } from 'vitest'
 
 describe('the getServerNameFromMatrixId helper', () => {
   it('should extract the server name correctly', () => {

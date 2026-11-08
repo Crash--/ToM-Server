@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import express, { type Response } from 'express'
 import supertest from 'supertest'
 import type { Config } from '../../types'
@@ -7,15 +7,15 @@ import router, { PATH } from '../routes'
 import { type TwakeLogger } from '../../../logger'
 
 const app = express()
-const getAccessTokenMock = mock()
-const getImageMock = mock()
+const getAccessTokenMock = vi.fn()
+const getImageMock = vi.fn()
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
-mock.module('../services', () => {
+vi.mock('../services', () => {
   return {
     default: function () {
       return {
@@ -25,7 +25,7 @@ mock.module('../services', () => {
   }
 })
 
-mock.module('../../utils/services/token-service.ts', () => {
+vi.mock('../../utils/services/token-service.ts', () => {
   return {
     default: function () {
       return {
@@ -38,7 +38,7 @@ mock.module('../../utils/services/token-service.ts', () => {
 const idServerMock = {
   db: {},
   userDb: {},
-  authenticate: mock()
+  authenticate: vi.fn()
     .mockImplementation((_req: Request, _res: Response, callbackMethod) => {
       callbackMethod('test', 'test')
     })
@@ -55,7 +55,7 @@ app.use(
 )
 
 beforeEach(() => {
-  mock.restore()
+  vi.restoreAllMocks()
 })
 
 describe('the QRCode API controller', () => {

@@ -1,6 +1,6 @@
 /* eslint-disable n/no-callback-literal */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import bodyParser from 'body-parser'
 import express, { type NextFunction } from 'express'
 import fetch, { type Response } from 'node-fetch'
@@ -16,18 +16,18 @@ const smsConfig = {
   sms_api_url: 'http://url/'
 }
 
-mock.module('node-fetch', () => ({
-  default: mock(),
+vi.mock('node-fetch', () => ({
+  default: vi.fn(),
 }))
 
 const mockFetch = fetch as Mock<(...args: any[]) => any>
 
-const authenticatorMock = mock()
+const authenticatorMock = vi.fn()
   .mockImplementation((req, res, callbackMethod) => {
     callbackMethod('test', 'test')
   })
 
-mock.module('../middlewares/index', () => {
+vi.mock('../middlewares/index', () => {
   const passiveMiddlewareMock = (
     _req: AuthRequest,
     _res: Response,

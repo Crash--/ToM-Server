@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { type Request, type Response, type NextFunction } from 'express'
 import { VaultAPIError, allowCors, errorMiddleware } from './utils'
 
@@ -8,17 +8,17 @@ describe('Utils methods', () => {
   let nextFunction: NextFunction
 
   beforeEach(() => {
-    nextFunction = mock()
+    nextFunction = vi.fn()
     mockRequest = {}
     mockResponse = {
-      setHeader: mock(),
-      status: mock(),
-      json: mock()
+      setHeader: vi.fn(),
+      status: vi.fn(),
+      json: vi.fn()
     }
   })
 
   afterEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should set header in response to avoid CORS error', async () => {

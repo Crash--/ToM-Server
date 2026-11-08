@@ -1,4 +1,5 @@
-import { describe, expect, it, test } from "bun:test";
+import { describe, expect, it, test } from "vitest";
+import { withDone } from "../with-done";
 import { canonicalJson, generateKeyPair, Hash, randomString, signJson } from "./index";
 
 const sha256Results: Record<string, string> = {
@@ -17,7 +18,7 @@ const sha512Results: Record<string, string> = {
 };
 
 describe("Hash methods", () => {
-  it("should give the wanted result", (done) => {
+  it("should give the wanted result", withDone((done) => {
     const hash = new Hash();
     hash.ready
       .then(() => {
@@ -30,7 +31,7 @@ describe("Hash methods", () => {
         done();
       })
       .catch((e) => done(e));
-  });
+  }));
 });
 
 test("randomString", () => {

@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import { TwakeLogger } from '../../../logger'
 import { Config } from '../../types'
 import NotificationService from './notification-service'
 
-const sendSMSMock = mock()
-const sendEmailMock = mock()
+const sendSMSMock = vi.fn()
+const sendEmailMock = vi.fn()
 
-mock.module('./sms-service.ts', () => {
+vi.mock('./sms-service.ts', () => {
   return {
     default: function () {
       return {
@@ -16,7 +16,7 @@ mock.module('./sms-service.ts', () => {
   }
 })
 
-mock.module('./email-service.ts', () => {
+vi.mock('./email-service.ts', () => {
   return {
     default: function () {
       return {
@@ -29,9 +29,9 @@ mock.module('./email-service.ts', () => {
 
 describe('the notification service', () => {
   const loggerMock = {
-    info: mock(),
-    error: mock(),
-    warn: mock()
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn()
   }
 
   const configMock = {

@@ -7,13 +7,13 @@ import type { IUserInfoService, UserInformation } from '../types'
 import type { MatrixDB } from '../../../../matrix-identity-server'
 import UserInfoController from '../controllers'
 import { ForbiddenError } from '../types'
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 
 const app = express()
 app.use(express.json())
 
-const getMock = mock()
-const updateVisibilityMock = mock()
+const getMock = vi.fn()
+const updateVisibilityMock = vi.fn()
 
 const userInfoServiceMock = {
   get: getMock,
@@ -21,14 +21,14 @@ const userInfoServiceMock = {
 } as unknown as IUserInfoService
 
 const matrixDBMock: Partial<MatrixDB> = {
-  get: mock()
+  get: vi.fn()
     .mockResolvedValue([{ displayname: '', avatar_url: 'avatar_url' }])
 } as unknown as Partial<MatrixDB>
 
 const idServerMock = {
   db: {},
   userDb: {},
-  authenticate: mock().mockImplementation((_req, _res, callbackMethod) => {
+  authenticate: vi.fn().mockImplementation((_req, _res, callbackMethod) => {
     callbackMethod({ sub: '@dwho:docker.localhost' }, 'token')
   })
 }
@@ -44,7 +44,7 @@ app.use(
 )
 
 beforeEach(() => {
-  mock.restore()
+  vi.restoreAllMocks()
 })
 
 describe('the user info API controller', () => {
@@ -127,8 +127,8 @@ describe('UserInfoController – additional branch coverage (unit)', () => {
 
   const makeRes = () => {
     const res: any = {
-      status: mock().mockReturnThis(),
-      json: mock()
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
     }
     return res
   }
@@ -142,11 +142,11 @@ describe('UserInfoController – additional branch coverage (unit)', () => {
     } as AuthRequest
   }
 
-  const next = mock()
+  const next = vi.fn()
   let controller: UserInfoController
 
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
     controller = new UserInfoController(
       userdb,
       db,

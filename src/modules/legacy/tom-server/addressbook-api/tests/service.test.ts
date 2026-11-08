@@ -1,29 +1,29 @@
 import { DIRECTORY_FIELDS } from '../types'
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TwakeDB } from '../../types'
 import { AddressbookService } from '../services'
 import { type TwakeLogger } from '../../../logger'
 import { Contact } from '../types'
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  debug: mock(),
-  silly: mock()
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  silly: vi.fn()
 }
 
 afterEach(() => {
-  mock.restore()
+  vi.restoreAllMocks()
 })
 
 describe('the addressbooK API service', () => {
@@ -600,7 +600,7 @@ describe('the addressbooK API service', () => {
 
   describe('the addContacts method', () => {
     beforeEach(() => {
-      mock.clearAllMocks()
+      vi.clearAllMocks()
     })
 
     const demoContacts = [
@@ -715,20 +715,20 @@ describe('the addressbooK API service', () => {
 
 describe('the directory read by the list of an addressbook', () => {
   const rows = [{ uid: 'colleague', cn: 'A Colleague', mail: 'c@server.com' }]
-  const setUp = (getAll: ReturnType<typeof mock>): AddressbookService => {
+  const setUp = (getAll: ReturnType<typeof vi.fn>): AddressbookService => {
     const db = {
-      get: mock().mockImplementation((table: string) =>
+      get: vi.fn().mockImplementation((table: string) =>
         table === 'addressbooks' ? [{ id: 'bookId', owner: 'owner' }] : []
       )
     }
     return new AddressbookService(
       db as never,
       {
-        error: mock(),
-        warn: mock(),
-        info: mock(),
-        debug: mock(),
-        silly: mock()
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        silly: vi.fn()
       } as never,
       { getAll } as never,
       { additional_features: true, server_name: 'server.com' } as never
@@ -736,7 +736,7 @@ describe('the directory read by the list of an addressbook', () => {
   }
 
   it('should hand over its rows, with every field of the enrichment', async () => {
-    const getAll = mock().mockResolvedValue(rows)
+    const getAll = vi.fn().mockResolvedValue(rows)
 
     const book = await setUp(getAll).list('owner')
 
@@ -751,9 +751,9 @@ describe('the directory read by the list of an addressbook', () => {
   })
 
   it('should read the directory once, and keep the contacts of the owner when it fails', async () => {
-    const getAll = mock().mockRejectedValue(new Error('LDAP is down'))
+    const getAll = vi.fn().mockRejectedValue(new Error('LDAP is down'))
     const db = {
-      get: mock().mockImplementation((table: string) =>
+      get: vi.fn().mockImplementation((table: string) =>
         table === 'addressbooks'
           ? [{ id: 'bookId', owner: 'owner' }]
           : [
@@ -770,11 +770,11 @@ describe('the directory read by the list of an addressbook', () => {
     const service = new AddressbookService(
       db as never,
       {
-        error: mock(),
-        warn: mock(),
-        info: mock(),
-        debug: mock(),
-        silly: mock()
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+        debug: vi.fn(),
+        silly: vi.fn()
       } as never,
       { getAll } as never,
       { additional_features: true, server_name: 'server.com' } as never

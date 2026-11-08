@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, test } from 'bun:test'
+import { describe, expect, it, test, vi } from 'vitest'
 import express, { type NextFunction } from 'express'
 import bodyParser from 'body-parser'
 import { TwakeLogger } from '../../../../../logger'
@@ -12,14 +12,14 @@ import router from '../routes'
 import supertest from 'supertest'
 
 const loggerMock = {
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  debug: mock(),
-  silly: mock()
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  silly: vi.fn()
 }
 
-mock.module('../middlewares/index.ts', () => {
+vi.mock('../middlewares/index.ts', () => {
   const passiveMiddlewareMock = (
     _req: AuthRequest,
     _res: Response,
@@ -39,9 +39,9 @@ mock.module('../middlewares/index.ts', () => {
   }
 })
 
-const mockCreate = mock()
+const mockCreate = vi.fn()
 
-mock.module('../services/index.ts', () => {
+vi.mock('../services/index.ts', () => {
   return {
     default: function () {
       return {

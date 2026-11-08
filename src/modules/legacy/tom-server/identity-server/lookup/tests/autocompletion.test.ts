@@ -1,52 +1,50 @@
-import { resolve } from 'path'
-import { beforeEach, describe, expect, it, mock, type Mock } from 'bun:test'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import autocompletion from '../autocompletion'
 import { jsonContent, validateParameters } from '../../../../utils'
 import _search from '../_search'
 
-mock.module(
-  resolve(import.meta.dir, '../../../../utils/index'),
+vi.mock('../../../../utils/index',
   () => ({
-    jsonContent: mock((req, res, logger, callback) => callback(req.body)),
-    validateParameters: mock((res, schema, obj, logger, callback) =>
+    jsonContent: vi.fn((req, res, logger, callback) => callback(req.body)),
+    validateParameters: vi.fn((res, schema, obj, logger, callback) =>
       callback(obj)
     )
   })
 )
 
-mock.module('../_search', () => ({ default: mock(() => mock()) }))
+vi.mock('../_search', () => ({ default: vi.fn(() => vi.fn()) }))
 
 // Mock service instances
 const createMockServices = () => ({
   addressbookService: {
-    list: mock().mockResolvedValue({ contacts: [] })
+    list: vi.fn().mockResolvedValue({ contacts: [] })
   } as any,
   userInfoService: {
-    get: mock().mockResolvedValue(null)
+    get: vi.fn().mockResolvedValue(null)
   } as any
 })
 
 describe('autocompletion handler', () => {
   const logger = {
-    debug: mock(),
-    info: mock(),
-    warn: mock(),
-    error: mock()
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
   }
 
   const idServer = {
-    authenticate: mock(),
+    authenticate: vi.fn(),
     conf: { server_name: 'server' }
   }
 
   const resMock = {} as any
 
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should call search with owner from token.sub', async () => {
-    const mockSearch = mock()
+    const mockSearch = vi.fn()
     ;(_search as Mock<(...args: any[]) => any>).mockResolvedValue(mockSearch)
 
     const { addressbookService, userInfoService } = createMockServices()
@@ -79,7 +77,7 @@ describe('autocompletion handler', () => {
   })
 
   it('should fallback to default owner when token.sub is missing', async () => {
-    const mockSearch = mock()
+    const mockSearch = vi.fn()
     ;(_search as Mock<(...args: any[]) => any>).mockResolvedValue(mockSearch)
 
     const { addressbookService, userInfoService } = createMockServices()

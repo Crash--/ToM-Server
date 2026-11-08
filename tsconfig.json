@@ -12,7 +12,7 @@
     "strict": true,
     "skipLibCheck": true,
     "types": [
-      "bun"
+      "node"
     ],
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,

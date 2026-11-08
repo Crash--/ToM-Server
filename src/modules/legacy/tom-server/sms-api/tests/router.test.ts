@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+import { withDone } from '../../../with-done'
 import { type ConfigDescription } from '../../../../config-parser'
 import { type TwakeLogger } from '../../../logger'
 import { IdentityServerDb, type MatrixDB } from '../../../matrix-identity-server'
@@ -18,25 +19,25 @@ import errorMiddleware from '../../utils/middlewares/error.middleware'
 import router, { PATH } from '../routes'
 
 const mockLogger: Partial<TwakeLogger> = {
-  debug: mock(),
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  close: mock()
+  debug: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  close: vi.fn()
 }
 
 const app = express()
 
-const middlewareSpy = mock().mockImplementation((_req, _res, next) => {
+const middlewareSpy = vi.fn().mockImplementation((_req, _res, next) => {
   next()
 })
 
-spyOn(IdentityServerDb.prototype, 'get')
+vi.spyOn(IdentityServerDb.prototype, 'get')
   .mockResolvedValue([{ data: '"test"' }])
 
 let idServer: IdServer
 
-mock.module('../middlewares/index.ts', () => ({
+vi.mock('../middlewares/index.ts', () => ({
   default: function () {
     return {
       checkSendRequirements: middlewareSpy,
@@ -45,7 +46,7 @@ mock.module('../middlewares/index.ts', () => ({
   }
 }))
 
-mock.module('../controllers/index.ts', () => ({
+vi.mock('../controllers/index.ts', () => ({
   default: function () {
     const passiveControllerMock = (
       req: AuthRequest,
@@ -65,11 +66,11 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 describe('SMS API Router', () => {
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     // Use in-memory databases to avoid conflicts between parallel test workers
     idServer = new IdServer(
       {
-        get: mock()
+        get: vi.fn()
       } as unknown as MatrixDB,
       {} as unknown as Config,
       {
@@ -105,7 +106,7 @@ describe('SMS API Router', () => {
       .catch((e) => {
         done(e)
       })
-  })
+  }))
 
   afterAll(() => {
     idServer.cleanJobs()

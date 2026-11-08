@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, type Mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import AdminSettingsMiddleware from '../middlewares'
 import conf from '../../../defaultConfig.json'
 
@@ -9,9 +9,9 @@ interface MockLogger {
 }
 
 const makeLogger = (): MockLogger => ({
-  info: mock(),
-  warn: mock(),
-  error: mock()
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn()
 })
 
 describe('AdminSettingsMiddleware', () => {
@@ -29,14 +29,14 @@ describe('AdminSettingsMiddleware', () => {
       headers: {}
     }
     res = {
-      status: mock().mockReturnThis(),
-      json: mock()
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
     }
-    next = mock()
+    next = vi.fn()
   })
 
   afterEach(() => {
-    mock.restore()
+    vi.restoreAllMocks()
   })
 
   describe('checkAdminSettingsToken', () => {

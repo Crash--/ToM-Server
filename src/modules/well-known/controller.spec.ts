@@ -1,5 +1,4 @@
-import { describe, expect, it } from "bun:test";
-
+import { describe, expect, it } from "vitest";
 import { createLogger } from "winston";
 
 import { wellKnownClientController } from "./controller";

@@ -6,8 +6,8 @@
  * WellKnown registers.
  */
 
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
-import type { Mock } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
+import type { Mock } from 'vitest'
 import request from 'supertest'
 import express, { type Express } from 'express'
 import WellKnown from '.'
@@ -17,7 +17,7 @@ import { ProfileVisibility } from '../user-info-api/types'
 
 type WellKnownConfig = Pick<Config, 'features'>
 
-mock.module('@twake/utils', () => ({
+vi.mock('@twake/utils', () => ({
   send: (res: any, code: number, payload: any) => {
     res.status(code).json(payload)
   }
@@ -50,7 +50,7 @@ function createApp(conf: WellKnownConfig): Express {
 
 describe('WellKnown class', () => {
   beforeEach(() => {
-    global.fetch = mock()
+    global.fetch = vi.fn()
   })
 
   it('propagates features.common_settings.enabled correctly', async () => {

@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+import { withDone } from '../../../with-done'
 import express, { type Response, type NextFunction } from 'express'
 import bodyParser from 'body-parser'
 import type { AuthRequest, Config } from '../../types'
@@ -14,20 +15,20 @@ import path from 'path'
 import supertest from 'supertest'
 
 const mockLogger: Partial<TwakeLogger> = {
-  debug: mock(),
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  close: mock()
+  debug: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  close: vi.fn()
 }
 
-spyOn(IdentityServerDb.prototype, 'get')
+vi.spyOn(IdentityServerDb.prototype, 'get')
   .mockResolvedValue([{ data: '"test"' }])
 
 // Use in-memory databases to avoid conflicts between parallel test workers
 const idServer = new IdServer(
   {
-    get: mock()
+    get: vi.fn()
   } as unknown as MatrixDB,
   {} as unknown as Config,
   {
@@ -52,11 +53,11 @@ const idServer = new IdServer(
 )
 
 const app = express()
-const middlewareSpy = mock().mockImplementation((_req, _res, next) => {
+const middlewareSpy = vi.fn().mockImplementation((_req, _res, next) => {
   next()
 })
 
-mock.module('../middlewares', () => {
+vi.mock('../middlewares', () => {
   return {
     default: function () {
       return {
@@ -66,7 +67,7 @@ mock.module('../middlewares', () => {
   }
 })
 
-mock.module('../controllers', () => {
+vi.mock('../controllers', () => {
   const passiveController = (
     _req: AuthRequest,
     res: Response,
@@ -89,7 +90,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 describe('the Metrics API router', () => {
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     idServer.ready
       .then(() => {
         app.use(
@@ -107,7 +108,7 @@ describe('the Metrics API router', () => {
       .catch((e) => {
         done(e)
       })
-  })
+  }))
 
   afterAll(() => {
     idServer.cleanJobs()

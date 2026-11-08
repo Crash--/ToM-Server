@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import type { AuthRequest, TwakeDB } from '../../types'
 import type { Response, NextFunction } from 'express'
 import Middleware from '../middlewares'
@@ -8,21 +8,21 @@ let mockRequest: Partial<AuthRequest>
 let mockResponse: Partial<Response>
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
-const nextFunction: NextFunction = mock()
+const nextFunction: NextFunction = vi.fn()
 const addressbookApiMiddleware = new Middleware(
   dbMock as unknown as TwakeDB,
   loggerMock as unknown as TwakeLogger
@@ -41,8 +41,8 @@ beforeEach(() => {
   }
 
   mockResponse = {
-    json: mock(),
-    status: mock().mockReturnThis()
+    json: vi.fn(),
+    status: vi.fn().mockReturnThis()
   }
 })
 

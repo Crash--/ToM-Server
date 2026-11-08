@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, test, vi } from "bun:test"
+import { beforeEach, describe, expect, it, test, vi } from "vitest"
 import type { AuthRequest, Config, TwakeDB } from '../../types'
 import type { Response, NextFunction } from 'express'
 import Middleware from '../middlewares'
@@ -12,21 +12,21 @@ const EXPIRATION = 24 * 60 * 60 * 1000 // 24 hours
 const TEST_DELAY = 1000 * 60 // 1 minute
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  warn: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn()
 }
 
-const nextFunction: NextFunction = mock()
+const nextFunction: NextFunction = vi.fn()
 const middleware = new Middleware(
   dbMock as unknown as TwakeDB,
   loggerMock as unknown as TwakeLogger,
@@ -43,8 +43,8 @@ beforeEach(() => {
   }
 
   mockResponse = {
-    json: mock(),
-    status: mock().mockReturnThis()
+    json: vi.fn(),
+    status: vi.fn().mockReturnThis()
   }
 })
 
@@ -423,7 +423,7 @@ describe('the Invitation API middleware', () => {
     })
 
     it('should call the checkInvitationPayload middleware body contains enough data', async () => {
-      middleware.checkInvitationPayload = mock()
+      middleware.checkInvitationPayload = vi.fn()
 
       await middleware.checkGenerateInvitationLinkPayload(
         {

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterEach, describe, expect, it, test, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import QRCodeService from '../services'
 import QRCode from 'qrcode'
@@ -8,14 +8,14 @@ const testSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 37 37" sha
 `
 
 afterEach(() => {
-  mock.restore()
+  vi.restoreAllMocks()
 })
 
 describe('the QRCode service', () => {
   const loggerMock = {
-    info: mock(),
-    error: mock(),
-    warn: mock()
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn()
   }
 
   const configMock = {
@@ -39,7 +39,7 @@ describe('the QRCode service', () => {
   })
 
   it('should return null if something wrong happens', async () => {
-    spyOn(QRCode, 'toString').mockImplementation(() => {
+    vi.spyOn(QRCode, 'toString').mockImplementation(() => {
       throw new Error('test')
     })
 
