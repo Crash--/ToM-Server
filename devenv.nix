@@ -67,7 +67,7 @@ in
       "tree-sitter" = {
         type = "local";
         command = [
-          "bunx"
+          "npx"
           "@nendo/tree-sitter-mcp"
           "--mcp"
         ];
@@ -82,8 +82,9 @@ in
   languages = {
     javascript = {
       enable = true;
-      bun.enable = true;
-      bun.install.enable = false;
+      package = pkgs.nodejs_26;
+      npm.enable = true;
+      npm.install.enable = false;
       lsp.enable = true;
     };
     nix = {
@@ -165,7 +166,7 @@ in
     echo -e "\t- Synapse     https://matrix.${domain}:${toString config.twake.caddy.port}"
     echo -e "\t- Postgres    127.0.0.1:${toString config.twake.pg.port}"
     echo -e "\t- LDAP        ${config.twake.ldap.base}"
-    echo -e "\t- ToM Server  (bun dev with watch mode)"
+    echo -e "\t- ToM Server  (npm run dev with watch mode)"
     echo
     echo "DATABASES"
     echo

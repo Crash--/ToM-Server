@@ -60,10 +60,7 @@
                 "**/telemetry/**"
               ],
               ":BLANK_LINE:",
-              [
-                ":BUN:",
-                ":NODE:"
-              ],
+              ":NODE:",
               ":BLANK_LINE:",
               [
                 ":PACKAGE:",
