@@ -31,7 +31,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "bunup.config.ts"
+    "dist"
   ]
 }
