@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import type { NextFunction, Request, Response } from 'express'
 import type { Config } from '../../types'
@@ -6,18 +6,18 @@ import requireLdapMiddleware from '../middlewares/require-ldap'
 
 let mockRequest: Partial<Request>
 let mockResponse: Partial<Response>
-const mockNext: NextFunction = mock()
-const mockLogger: Partial<TwakeLogger> = { error: mock() }
+const mockNext: NextFunction = vi.fn()
+const mockLogger: Partial<TwakeLogger> = { error: vi.fn() }
 
 beforeEach(() => {
   mockRequest = {}
   mockResponse = {
-    send: mock(),
-    status: mock().mockReturnThis()
+    send: vi.fn(),
+    status: vi.fn().mockReturnThis()
   }
 })
 
-afterEach(() => mock.clearAllMocks())
+afterEach(() => vi.clearAllMocks())
 
 describe('the check LDAP middleware', () => {
   it('should call the next handler if the user database engine is ldap', () => {

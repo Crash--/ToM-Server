@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, type Mock } from 'bun:test'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
 import Service from '../services'
 import type { TwakeLogger } from '../../../../../logger'
 import type { Config } from '../../../../types'
@@ -174,11 +174,11 @@ const public_channel = {
 }
 
 const loggerMock = {
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  debug: mock(),
-  silly: mock()
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  silly: vi.fn()
 }
 
 const testConfig = {
@@ -213,11 +213,11 @@ const roomService = new Service(
 
 describe('the RoomService', () => {
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should call the synapse API to create a room with content override', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -269,7 +269,7 @@ describe('the RoomService', () => {
   })
 
   it('should use appropriate power_level_content_override for public_chat', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -327,7 +327,7 @@ describe('the RoomService', () => {
   })
 
   it('should use trusted_private_chat own power levels (not shared with private_chat)', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -379,7 +379,7 @@ describe('the RoomService', () => {
   })
 
   it('should apply is_direct mask over private_chat when is_direct=true', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -420,7 +420,7 @@ describe('the RoomService', () => {
   })
 
   it('should force is_direct=false for public_chat even if client sends true', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -449,7 +449,7 @@ describe('the RoomService', () => {
   })
 
   it('should force is_direct=false for private_channel', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -478,7 +478,7 @@ describe('the RoomService', () => {
   })
 
   it('should return a 500 response if something went wrong', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.reject({
         status: 500,
         json: () => Promise.reject({ error: 'error' })
@@ -495,7 +495,7 @@ describe('the RoomService', () => {
   })
 
   it('should not retry on HTTP 500 from Synapse', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: false,
         status: 500,
@@ -516,7 +516,7 @@ describe('the RoomService', () => {
   })
 
   it('should derive preset from visibility=public when no preset given', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -544,7 +544,7 @@ describe('the RoomService', () => {
   })
 
   it('should use default_preset from config when no preset or visibility given', async () => {
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -586,7 +586,7 @@ describe('the RoomService', () => {
       loggerMock as unknown as TwakeLogger
     )
 
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -629,7 +629,7 @@ describe('the RoomService', () => {
       loggerMock as unknown as TwakeLogger
     )
 
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),
@@ -684,7 +684,7 @@ describe('the RoomService', () => {
       loggerMock as unknown as TwakeLogger
     )
 
-    global.fetch = mock(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ room_id: 'room_id' }),

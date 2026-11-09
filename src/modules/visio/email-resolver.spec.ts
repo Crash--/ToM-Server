@@ -1,5 +1,4 @@
-import { afterEach, describe, expect, it, mock } from "bun:test";
-
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLogger } from "winston";
 
 import { EmailResolver } from "./email-resolver";
@@ -18,7 +17,7 @@ const resolver = new EmailResolver(
 );
 
 const mockFetch = (result: Response | Error): void => {
-  globalThis.fetch = mock(() =>
+  globalThis.fetch = vi.fn(() =>
     result instanceof Error ? Promise.reject(result) : Promise.resolve(result),
   ) as unknown as typeof fetch;
 };
@@ -106,7 +105,7 @@ describe("EmailResolver", () => {
   it.each([
     401,
     403,
-  ])("should throw a VisioUpstreamError when the homeserver rejects the token (%p)", async (status) => {
+  ])("should throw a VisioUpstreamError when the homeserver rejects the token (%j)", async (status) => {
     // Arrange
     mockFetch(
       new Response("{}", {

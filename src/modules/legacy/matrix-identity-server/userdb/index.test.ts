@@ -5,7 +5,8 @@ import Cache from '../cache'
 import defaultConfig from '../../defaultConfig.json'
 import { type Config } from '../types'
 import UserDB from './index'
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { withDone } from '../../with-done'
 
 const dbName = './testldap.db'
 
@@ -14,7 +15,7 @@ const logger: TwakeLogger = getLogger()
 describe('UserDB', () => {
   let userDB: UserDB
 
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     const db = new sqlite3.Database(dbName)
     db.run(
       'CREATE TABLE IF NOT EXISTS users(uid varchar(64) primary key)',
@@ -33,7 +34,7 @@ describe('UserDB', () => {
         }
       }
     )
-  })
+  }))
 
   afterEach(() => {
     userDB.close()
@@ -44,7 +45,7 @@ describe('UserDB', () => {
     logger.close()
   })
 
-  it('should find user', (done) => {
+  it('should find user', withDone((done) => {
     userDB = new UserDB(
       {
         ...defaultConfig,
@@ -68,9 +69,9 @@ describe('UserDB', () => {
           })
       })
       .catch(done)
-  })
+  }))
 
-  it('should provide match', (done) => {
+  it('should provide match', withDone((done) => {
     userDB = new UserDB(
       {
         ...defaultConfig,
@@ -94,9 +95,9 @@ describe('UserDB', () => {
           })
       })
       .catch(done)
-  })
+  }))
 
-  it('should work with cache', (done) => {
+  it('should work with cache', withDone((done) => {
     const conf: Config = {
       ...defaultConfig,
       cache_engine: 'memory',
@@ -123,5 +124,5 @@ describe('UserDB', () => {
           .catch(done)
       })
       .catch(done)
-  })
+  }))
 })

@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from "bun:test"
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from "vitest"
+import { withDone } from '../../with-done'
 import express from 'express'
 import fs from 'fs'
 import path from 'path'
@@ -9,8 +10,8 @@ import { type Config } from '../types'
 import buildTokenTable from './__testData__/buildTokenTable'
 import defaultConfig from './__testData__/config.json'
 
-const fetchMock = mock()
-mock.module('node-fetch', () => ({ default: fetchMock }))
+const fetchMock = vi.hoisted(() => vi.fn())
+vi.mock('node-fetch', () => ({ default: fetchMock }))
 
 const endpoint = '/_twake/recoveryWords'
 const testFilePath = path.join(JEST_PROCESS_ROOT_PATH, 'vault.db')
@@ -64,7 +65,7 @@ describe('Vault API server', () => {
   let vaultApiServer: TwakeServer
   let app: express.Application
 
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     const conf = {
       ...defaultConfig,
       database_engine: 'sqlite',
@@ -99,13 +100,13 @@ describe('Vault API server', () => {
         console.error(e)
         done(e)
       })
-  })
+  }))
 
   beforeEach(() => {
     fetchMock.mockResolvedValue({
-      json: mock().mockResolvedValue(matrixServerResponseBody)
+      json: vi.fn().mockResolvedValue(matrixServerResponseBody)
     })
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   afterAll(() => {

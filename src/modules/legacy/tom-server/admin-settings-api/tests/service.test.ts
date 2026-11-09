@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/dot-notation */
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn, test, vi } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import AdminService from '../services'
 import conf from '../../../defaultConfig.json'
 
@@ -11,9 +11,9 @@ interface MockLogger {
 }
 
 const makeLogger = (): MockLogger => ({
-  info: mock(),
-  warn: mock(),
-  error: mock()
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn()
 })
 
 conf.matrix_server = 'https://matrix.example.com'
@@ -28,13 +28,13 @@ describe('AdminService', () => {
   })
 
   afterEach(() => {
-    mock.restore()
+    vi.restoreAllMocks()
     vi.resetAllMocks()
   })
 
   describe('_getAdminAccessToken', () => {
     it('throws if tokenService fails', async () => {
-      spyOn(service['tokenService'], 'getAccessTokenWithCreds')
+      vi.spyOn(service['tokenService'], 'getAccessTokenWithCreds')
         .mockResolvedValue(null)
 
       await expect(service['_getAdminAccessToken']()).rejects.toThrow(
@@ -47,7 +47,7 @@ describe('AdminService', () => {
     })
 
     it('returns a token if tokenService succeeds', async () => {
-      spyOn(service['tokenService'], 'getAccessTokenWithCreds')
+      vi.spyOn(service['tokenService'], 'getAccessTokenWithCreds')
         .mockResolvedValue('fake-token')
       const token = await service['_getAdminAccessToken']()
       expect(token).toBe('fake-token')
@@ -56,7 +56,7 @@ describe('AdminService', () => {
 
   describe('_getCachedToken and _invalidateToken', () => {
     it('fetches and caches a token if not cached', async () => {
-      spyOn(service as any, '_getAdminAccessToken')
+      vi.spyOn(service as any, '_getAdminAccessToken')
         .mockResolvedValue('cached-token')
 
       const t1 = await service['_getCachedToken']()
@@ -68,7 +68,7 @@ describe('AdminService', () => {
     })
 
     it('invalidates cached token', async () => {
-      spyOn(service as any, '_getAdminAccessToken')
+      vi.spyOn(service as any, '_getAdminAccessToken')
         .mockResolvedValue('token-to-invalidate')
 
       await service['_getCachedToken']()
@@ -83,7 +83,7 @@ describe('AdminService', () => {
 
   describe('_doFetch', () => {
     it('calls fetch with proper headers', async () => {
-      const mockFetch = mock().mockResolvedValue({ ok: true })
+      const mockFetch = vi.fn().mockResolvedValue({ ok: true })
       global.fetch = mockFetch as any
 
       const token = 'abc'
@@ -106,8 +106,8 @@ describe('AdminService', () => {
 
   describe('makeRequestWithAdminToken', () => {
     it('returns response if status != 401', async () => {
-      spyOn(service as any, '_getCachedToken').mockResolvedValue('token')
-      spyOn(service as any, '_doFetch')
+      vi.spyOn(service as any, '_getCachedToken').mockResolvedValue('token')
+      vi.spyOn(service as any, '_doFetch')
         .mockResolvedValue({ status: 200 } as any)
 
       const res = await service.makeRequestWithAdminToken('endpoint')
@@ -115,8 +115,8 @@ describe('AdminService', () => {
     })
 
     it('retries on 401 and throws after maxRetries', async () => {
-      spyOn(service as any, '_getCachedToken').mockResolvedValue('token')
-      spyOn(service as any, '_doFetch')
+      vi.spyOn(service as any, '_getCachedToken').mockResolvedValue('token')
+      vi.spyOn(service as any, '_doFetch')
         .mockResolvedValue({ status: 401 } as any)
 
       await expect(
@@ -138,8 +138,8 @@ describe('AdminService', () => {
         json: async () => ({ content_uri: fakeMxc })
       }
 
-      spyOn(global, 'fetch').mockResolvedValueOnce(fetchResp)
-      spyOn(service, 'makeRequestWithAdminToken')
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce(fetchResp)
+      vi.spyOn(service, 'makeRequestWithAdminToken')
         .mockResolvedValueOnce(uploadResp as any)
 
       const mxc = await service['_fetchAndUploadAvatar'](
@@ -149,7 +149,7 @@ describe('AdminService', () => {
     })
 
     it('throws if fetch fails', async () => {
-      spyOn(global, 'fetch').mockResolvedValueOnce({
+      vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: false,
         status: 500,
         statusText: 'ERR'
@@ -166,7 +166,7 @@ describe('AdminService', () => {
 
   describe('updateUserInformation', () => {
     it('sends displayName only if no avatarUrl', async () => {
-      spyOn(service, 'makeRequestWithAdminToken')
+      vi.spyOn(service, 'makeRequestWithAdminToken')
         .mockResolvedValue({ ok: true, json: async () => ({}) } as any)
 
       await service.updateUserInformation('user1', { displayName: 'Alice' })
@@ -179,8 +179,8 @@ describe('AdminService', () => {
 
     it('sends displayName and avatar_url if avatarUrl provided', async () => {
       const mxc = 'mxc://avatar'
-      spyOn(service as any, '_fetchAndUploadAvatar').mockResolvedValue(mxc)
-      spyOn(service, 'makeRequestWithAdminToken')
+      vi.spyOn(service as any, '_fetchAndUploadAvatar').mockResolvedValue(mxc)
+      vi.spyOn(service, 'makeRequestWithAdminToken')
         .mockResolvedValue({ ok: true, json: async () => ({}) } as any)
 
       await service.updateUserInformation('user1', {
@@ -195,7 +195,7 @@ describe('AdminService', () => {
     })
 
     it('throws if makeRequestWithAdminToken fails', async () => {
-      spyOn(service, 'makeRequestWithAdminToken').mockResolvedValue({
+      vi.spyOn(service, 'makeRequestWithAdminToken').mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'ERR',

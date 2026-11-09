@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+import { withDone } from '../../../with-done'
 import { type ConfigDescription } from '../../../../config-parser'
 import { IdentityServerDb, type MatrixDB } from '../../../matrix-identity-server'
 import express from 'express'
@@ -13,10 +14,10 @@ import router, { PATH } from '../routes'
 
 const app = express()
 
-spyOn(IdentityServerDb.prototype, 'get').mockResolvedValue([{ data: '"test"' }])
+vi.spyOn(IdentityServerDb.prototype, 'get').mockResolvedValue([{ data: '"test"' }])
 
 const matrixDBMock: Partial<MatrixDB> = {
-  get: mock().mockResolvedValue([{ displayname: '', avatar_url: 'avatar_url' }])
+  get: vi.fn().mockResolvedValue([{ displayname: '', avatar_url: 'avatar_url' }])
 } as unknown as Partial<MatrixDB>
 
 const idServer = new IdServer(
@@ -42,16 +43,16 @@ const idServer = new IdServer(
   } as unknown as ConfigDescription
 )
 
-const serviceGetSpy = mock().mockResolvedValue({ uid: 'test' })
+const serviceGetSpy = vi.fn().mockResolvedValue({ uid: 'test' })
 const userInfoServiceMock = { get: serviceGetSpy } as unknown as IUserInfoService
 
 beforeEach(() => {
-  spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
   serviceGetSpy.mockClear()
 })
 
 describe('the user info API Router', () => {
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     idServer.ready
       .then(() => {
         app.use(
@@ -68,7 +69,7 @@ describe('the user info API Router', () => {
       .catch((e) => {
         done(e)
       })
-  })
+  }))
 
   afterAll(() => {
     idServer.cleanJobs()

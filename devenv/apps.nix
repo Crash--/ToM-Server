@@ -9,13 +9,15 @@ let
   tw = config.twake;
 in
 {
+  # Node reads it at process start only, never from an env file
+  env.NODE_EXTRA_CA_CERTS = "${config.env.DEVENV_STATE}/mkcert/rootCA.pem";
+
   files = {
     ".env".text = ''
       # This env file is reserved for node related variables only
 
       NODE_OPTIONS=--inspect=0
       NODE_TLS_REJECT_UNAUTHORIZED=0
-      NODE_EXTRA_CA_CERTS=.devenv/state/mkcert/rootCA.pem
     '';
     ".tomconfig.yaml".yaml = {
       server = {
@@ -90,7 +92,7 @@ in
 
   processes.tom = {
     exec = ''
-      bun dev
+      npm run dev
     '';
     process-compose.depends_on.postgres.condition = "process_healthy";
     process-compose.depends_on.synapse.condition = "process_started";

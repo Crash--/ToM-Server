@@ -1,9 +1,9 @@
-import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { load } from "js-yaml";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createLogger } from "winston";
 
 import { loadMessages, resolveMessage, translate } from "./index";

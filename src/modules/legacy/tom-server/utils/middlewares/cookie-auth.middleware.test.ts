@@ -1,17 +1,17 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NextFunction, Response } from 'express'
 import type { AuthRequest, Config } from '../../types'
 import CookieAuthMiddleware from './cookie-auth.middleware'
 import { TwakeLogger } from '../../../logger'
 
 const loggerMock = {
-  info: mock(),
-  error: mock()
+  info: vi.fn(),
+  error: vi.fn()
 } as unknown as TwakeLogger
 
-const getAccessTokenWithCookieMock = mock()
+const getAccessTokenWithCookieMock = vi.fn()
 
-mock.module('../services/token-service.ts', () => {
+vi.mock('../services/token-service.ts', () => {
   return {
     default: function () {
       return {
@@ -24,7 +24,7 @@ let mockRequest: Partial<AuthRequest>
 let mockResponse: Partial<Response>
 
 describe('the Auth with cookies middleware', () => {
-  const nextFunction: NextFunction = mock()
+  const nextFunction: NextFunction = vi.fn()
 
   const middleware = new CookieAuthMiddleware(
     {} as unknown as Config,
@@ -42,8 +42,8 @@ describe('the Auth with cookies middleware', () => {
       }
     }
     mockResponse = {
-      json: mock(),
-      status: mock().mockReturnThis()
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis()
     }
   })
 

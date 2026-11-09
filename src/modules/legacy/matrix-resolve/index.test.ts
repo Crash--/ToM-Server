@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, mock, type Mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from "vitest";
+import { withDone } from "../with-done";
 import { MatrixResolve, matrixResolve, type WellKnownMatrixServer } from "./index";
 
-mock.module("node-fetch", () => ({
-  default: mock(),
+vi.mock("node-fetch", () => ({
+  default: vi.fn(),
 }));
 
 import fetch from "node-fetch";
@@ -13,7 +14,7 @@ type DnsResolve = (
   callback: (err: null | Error, records: null | Record<string, string | number>) => void,
 ) => void;
 
-afterEach(() => mock.clearAllMocks());
+afterEach(() => vi.clearAllMocks());
 
 describe("matrixResolve", () => {
   it("should accept ip with port", async () => {
@@ -28,7 +29,7 @@ describe("matrixResolve", () => {
     expect(await matrixResolve("example.com:1234")).toBe("https://example.com:1234/");
   });
 
-  it("should reject non fqdn names without port", (done) => {
+  it("should reject non fqdn names without port", withDone((done) => {
     matrixResolve("{}")
       .then((m) => {
         done(`Receive ${m} instead of error`);
@@ -37,9 +38,9 @@ describe("matrixResolve", () => {
         expect(e instanceof Error);
         done();
       });
-  });
+  }));
 
-  it("should reject non fqdn names with port", (done) => {
+  it("should reject non fqdn names with port", withDone((done) => {
     matrixResolve("{}:234")
       .then((m) => {
         done(`Receive ${m} instead of error`);
@@ -48,7 +49,7 @@ describe("matrixResolve", () => {
         expect(e instanceof Error);
         done();
       });
-  });
+  }));
 
   describe("when hostname has no port", () => {
     describe("when .well-knwon/matrix/server#m.server is available", () => {
@@ -57,7 +58,7 @@ describe("matrixResolve", () => {
           "m.server": "1.2.3.5:678",
         };
         (fetch as Mock<(...args: any[]) => any>).mockResolvedValue({
-          json: mock().mockResolvedValue(wellKnown),
+          json: vi.fn().mockResolvedValue(wellKnown),
         });
         expect(await matrixResolve("matrix.org")).toBe("https://1.2.3.5:678/");
       });
@@ -67,7 +68,7 @@ describe("matrixResolve", () => {
           "m.server": "1.2.3.5",
         };
         (fetch as Mock<(...args: any[]) => any>).mockResolvedValue({
-          json: mock().mockResolvedValue(wellKnown),
+          json: vi.fn().mockResolvedValue(wellKnown),
         });
         expect(await matrixResolve("matrix.org")).toBe("https://1.2.3.5:8448/");
       });
@@ -77,7 +78,7 @@ describe("matrixResolve", () => {
           "m.server": "matrix-federation.matrix.org:443",
         };
         (fetch as Mock<(...args: any[]) => any>).mockResolvedValue({
-          json: mock().mockResolvedValue(wellKnown),
+          json: vi.fn().mockResolvedValue(wellKnown),
         });
         expect(await matrixResolve("matrix.org")).toBe("https://matrix-federation.matrix.org:443/");
       });
@@ -98,7 +99,7 @@ describe("matrixResolve", () => {
         expect(await matrixResolve("goodtech.info")).toBe("https://goodtech.info:8448/");
       });
 
-      it("should fail when SRV fields not available and host does not exist", (done) => {
+      it("should fail when SRV fields not available and host does not exist", withDone((done) => {
         matrixResolve("matrix.noexist")
           .then((res) => {
             done(`matrix.noexist should not have a value, get ${res}`);
@@ -107,7 +108,7 @@ describe("matrixResolve", () => {
             expect(e instanceof Error);
             done();
           });
-      });
+      }));
     });
   });
 });
@@ -118,7 +119,7 @@ describe("MatrixResolve", () => {
       "m.server": "1.2.3.5",
     };
     (fetch as Mock<(...args: any[]) => any>).mockResolvedValue({
-      json: mock().mockResolvedValue(wellKnown),
+      json: vi.fn().mockResolvedValue(wellKnown),
     });
     const m = new MatrixResolve();
     expect(await m.resolve("matrix.noexist")).toBe("https://1.2.3.5:8448/");
@@ -129,7 +130,7 @@ describe("MatrixResolve", () => {
       "m.server": "1.2.3.5",
     };
     (fetch as Mock<(...args: any[]) => any>).mockResolvedValue({
-      json: mock().mockResolvedValue(wellKnown),
+      json: vi.fn().mockResolvedValue(wellKnown),
     });
     const m = new MatrixResolve({
       cache: "toad-cache",
@@ -137,7 +138,7 @@ describe("MatrixResolve", () => {
     await m.cacheReady;
     expect(await m.resolve("matrix.noexist")).toBe("https://1.2.3.5:8448/");
     (fetch as Mock<(...args: any[]) => any>).mockResolvedValue({
-      json: mock().mockResolvedValue({}),
+      json: vi.fn().mockResolvedValue({}),
     });
     expect(await m.resolve("matrix.noexist")).toBe("https://1.2.3.5:8448/");
   });

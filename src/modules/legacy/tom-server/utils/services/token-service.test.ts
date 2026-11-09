@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterEach, describe, expect, it, test, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import { type Config } from '../../types'
 import TokenService from './token-service'
 import type { LoginFlow } from '../../types'
 
-global.fetch = mock(
+global.fetch = vi.fn(
   async () =>
     await Promise.resolve({
       json: async () => await Promise.resolve({ access_token: 'demo_token' })
@@ -13,9 +13,9 @@ global.fetch = mock(
 
 describe('the Token service', () => {
   const loggerMock = {
-    info: mock(),
-    error: mock(),
-    warn: mock()
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn()
   }
 
   const configMock = {
@@ -30,12 +30,12 @@ describe('the Token service', () => {
   )
 
   afterEach(() => {
-    mock.restore()
+    vi.restoreAllMocks()
   })
 
   describe('the getOidcProvider method', () => {
     it('should return the oidc provider', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -60,7 +60,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if no oidc provider is found', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -79,7 +79,7 @@ describe('the Token service', () => {
     })
 
     it("should return null if the sso login flow doesn't have any providers", async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -98,7 +98,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if the response had an error', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -113,7 +113,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if something wrong happens while fetching', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () => await Promise.reject(new Error('API is down'))
       )
       const result = await tokenService.getOidcProvider()
@@ -124,7 +124,7 @@ describe('the Token service', () => {
 
   describe('the getOidcRedirectLocation method', () => {
     it('should return the location and cleaned cookies from the redirection response', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             headers: {
@@ -151,7 +151,7 @@ describe('the Token service', () => {
     })
 
     it('should strip cookie attributes and handle a single cookie', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             headers: {
@@ -177,7 +177,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if something wrong happens', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () => await Promise.reject(new Error('API is down'))
       )
 
@@ -187,7 +187,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if session cookies were missing from the headers', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             headers: {
@@ -208,7 +208,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if location header was missing', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             headers: {
@@ -226,7 +226,7 @@ describe('the Token service', () => {
 
   describe('the getLoginToken method', () => {
     it('should extract the login token from the callback response body', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         // Step 1: auth provider returns redirect to Matrix callback
         .mockResolvedValueOnce({
           headers: {
@@ -265,7 +265,7 @@ describe('the Token service', () => {
     })
 
     it('should extract the login token from the callback redirect URL', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         .mockResolvedValueOnce({
           headers: {
             get: (header: string) =>
@@ -294,7 +294,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if callback URL origin does not match Matrix server', async () => {
-      global.fetch = mock().mockResolvedValueOnce({
+      global.fetch = vi.fn().mockResolvedValueOnce({
         headers: {
           get: (header: string) =>
             header === 'location'
@@ -315,7 +315,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if auth provider does not redirect', async () => {
-      global.fetch = mock().mockResolvedValueOnce({
+      global.fetch = vi.fn().mockResolvedValueOnce({
         headers: { get: () => null }
       } as unknown as Response)
 
@@ -329,7 +329,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if something wrong happens', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () => await Promise.reject(new Error('API is down'))
       )
 
@@ -343,7 +343,7 @@ describe('the Token service', () => {
     })
 
     it("should return null if the callback response didn't include a loginToken", async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         .mockResolvedValueOnce({
           headers: {
             get: (header: string) =>
@@ -367,7 +367,7 @@ describe('the Token service', () => {
     })
 
     it('should fall through to body when redirect URL has no loginToken', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         .mockResolvedValueOnce({
           headers: {
             get: (header: string) =>
@@ -397,7 +397,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if the Matrix callback request fails', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         .mockResolvedValueOnce({
           headers: {
             get: (header: string) =>
@@ -420,7 +420,7 @@ describe('the Token service', () => {
 
   describe('the requestAccessToken method', () => {
     it('should request an access_token using the provided loginToken', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -434,7 +434,7 @@ describe('the Token service', () => {
     })
 
     it('should call the login API using the correct payload', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -462,7 +462,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if something wrong happens', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () => await Promise.reject(new Error('API is down'))
       )
 
@@ -472,7 +472,7 @@ describe('the Token service', () => {
     })
 
     it("should return null if the response didn't include an access_token", async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () =>
@@ -486,7 +486,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if the response had an error', async () => {
-      global.fetch = mock(
+      global.fetch = vi.fn(
         async () =>
           await Promise.resolve({
             json: async () => await Promise.resolve({ error: 'something' })
@@ -501,7 +501,7 @@ describe('the Token service', () => {
 
   describe('the getAuthCookie method', () => {
     it('should return a cleaned cookie from the auth provider response', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         // First call: _getAuthProviderLoginToken
         .mockResolvedValueOnce({
           json: async () => ({ token: 'csrf_token_123' })
@@ -524,7 +524,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if the auth provider does not return a token', async () => {
-      global.fetch = mock().mockResolvedValueOnce({
+      global.fetch = vi.fn().mockResolvedValueOnce({
         json: async () => ({})
       } as unknown as Response)
 
@@ -537,7 +537,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if the auth provider does not set cookies', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         .mockResolvedValueOnce({
           json: async () => ({ token: 'csrf_token_123' })
         } as unknown as Response)
@@ -554,7 +554,7 @@ describe('the Token service', () => {
     })
 
     it('should POST credentials with the CSRF token from the auth provider', async () => {
-      global.fetch = mock()
+      global.fetch = vi.fn()
         .mockResolvedValueOnce({
           json: async () => ({ token: 'csrf_token_123' })
         } as unknown as Response)
@@ -584,9 +584,9 @@ describe('the Token service', () => {
 
   describe('the getAccessTokenWithCreds method', () => {
     it('should return the access token using auth cookie and SSO flow', async () => {
-      spyOn(tokenService, 'getAuthCookie')
+      vi.spyOn(tokenService, 'getAuthCookie')
         .mockResolvedValue('lemonldap=session_abc')
-      spyOn(tokenService, 'getAccessTokenWithCookie')
+      vi.spyOn(tokenService, 'getAccessTokenWithCookie')
         .mockResolvedValue('access_token_xyz')
 
       const result = await tokenService.getAccessTokenWithCreds('admin', 'pass')
@@ -599,7 +599,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if auth cookie acquisition fails', async () => {
-      spyOn(tokenService, 'getAuthCookie').mockResolvedValue(null)
+      vi.spyOn(tokenService, 'getAuthCookie').mockResolvedValue(null)
 
       const result = await tokenService.getAccessTokenWithCreds('admin', 'pass')
 
@@ -607,9 +607,9 @@ describe('the Token service', () => {
     })
 
     it('should return null if SSO token exchange fails', async () => {
-      spyOn(tokenService, 'getAuthCookie')
+      vi.spyOn(tokenService, 'getAuthCookie')
         .mockResolvedValue('lemonldap=session_abc')
-      spyOn(tokenService, 'getAccessTokenWithCookie')
+      vi.spyOn(tokenService, 'getAccessTokenWithCookie')
         .mockResolvedValue(null)
 
       const result = await tokenService.getAccessTokenWithCreds('admin', 'pass')
@@ -620,14 +620,14 @@ describe('the Token service', () => {
 
   describe('the getAccessTokenWithCookie method', () => {
     it('should return the access_token using SSO', async () => {
-      spyOn(tokenService, 'getOidcProvider')
+      vi.spyOn(tokenService, 'getOidcProvider')
         .mockResolvedValue('test-oidc-provider')
-      spyOn(tokenService, 'getOidcRedirectLocation').mockResolvedValue({
+      vi.spyOn(tokenService, 'getOidcRedirectLocation').mockResolvedValue({
         location: 'https://auth.example.com/login',
         cookies: 'cookie1=value1; cookie2=value2'
       })
-      spyOn(tokenService, 'getLoginToken').mockResolvedValue('123456')
-      spyOn(tokenService, 'requestAccessToken')
+      vi.spyOn(tokenService, 'getLoginToken').mockResolvedValue('123456')
+      vi.spyOn(tokenService, 'requestAccessToken')
         .mockResolvedValue('demo_token')
 
       const result = await tokenService.getAccessTokenWithCookie('loginToken')
@@ -636,7 +636,7 @@ describe('the Token service', () => {
     })
 
     it('should return null if something wrong happens while fetching the OIDC provider', async () => {
-      spyOn(tokenService, 'getOidcProvider').mockResolvedValue(null)
+      vi.spyOn(tokenService, 'getOidcProvider').mockResolvedValue(null)
 
       const result = await tokenService.getAccessTokenWithCookie('loginToken')
 
@@ -644,9 +644,9 @@ describe('the Token service', () => {
     })
 
     it("should return null if it couldn't follow the OIDC redirection", async () => {
-      spyOn(tokenService, 'getOidcProvider')
+      vi.spyOn(tokenService, 'getOidcProvider')
         .mockResolvedValue('test-oidc-provider')
-      spyOn(tokenService, 'getOidcRedirectLocation')
+      vi.spyOn(tokenService, 'getOidcRedirectLocation')
         .mockResolvedValue(null)
 
       const result = await tokenService.getAccessTokenWithCookie('loginToken')
@@ -655,13 +655,13 @@ describe('the Token service', () => {
     })
 
     it("should return null if it couldn't fetch the loginToken", async () => {
-      spyOn(tokenService, 'getOidcProvider')
+      vi.spyOn(tokenService, 'getOidcProvider')
         .mockResolvedValue('test-oidc-provider')
-      spyOn(tokenService, 'getOidcRedirectLocation').mockResolvedValue({
+      vi.spyOn(tokenService, 'getOidcRedirectLocation').mockResolvedValue({
         location: 'https://auth.example.com/login',
         cookies: 'cookie1=value1; cookie2=value2'
       })
-      spyOn(tokenService, 'getLoginToken').mockResolvedValue(null)
+      vi.spyOn(tokenService, 'getLoginToken').mockResolvedValue(null)
 
       const result = await tokenService.getAccessTokenWithCookie('loginToken')
 
@@ -669,14 +669,14 @@ describe('the Token service', () => {
     })
 
     it("should return null if it couldn't request an access token", async () => {
-      spyOn(tokenService, 'getOidcProvider')
+      vi.spyOn(tokenService, 'getOidcProvider')
         .mockResolvedValue('test-oidc-provider')
-      spyOn(tokenService, 'getOidcRedirectLocation').mockResolvedValue({
+      vi.spyOn(tokenService, 'getOidcRedirectLocation').mockResolvedValue({
         location: 'https://auth.example.com/login',
         cookies: 'cookie1=value1; cookie2=value2'
       })
-      spyOn(tokenService, 'getLoginToken').mockResolvedValue('123456')
-      spyOn(tokenService, 'requestAccessToken').mockResolvedValue(null)
+      vi.spyOn(tokenService, 'getLoginToken').mockResolvedValue('123456')
+      vi.spyOn(tokenService, 'requestAccessToken').mockResolvedValue(null)
 
       const result = await tokenService.getAccessTokenWithCookie('loginToken')
 

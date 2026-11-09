@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import { DbGetResult, MatrixDB, UserDB } from '../../../../matrix-identity-server'
 import { IAddressbookService } from '../../addressbook-api/types'
@@ -61,17 +61,17 @@ const MOCK_DATA = {
 
 type LoggerWithoutTrace = Omit<TwakeLogger, 'trace'>
 const loggerMock: LoggerWithoutTrace = {
-  info: mock(),
-  error: mock(),
-  warn: mock(),
-  debug: mock(),
-  silly: mock(),
-  close: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+  silly: vi.fn(),
+  close: vi.fn()
 } as unknown as LoggerWithoutTrace // Need cast due to complex Omit type usage
 
 type UserDBMinimal = UserDB
 const userDBMock: UserDBMinimal = {
-  get: mock()
+  get: vi.fn()
 } as unknown as UserDBMinimal
 type useProfileTwake = {
   displayName: boolean
@@ -145,18 +145,18 @@ const mockUserDB = (
 
 type TwakeDBMinimal = Omit<TwakeDB, 'delete'>
 const twakeDBMock: TwakeDBMinimal = {
-  get: mock(),
-  insert: mock().mockImplementation(async (table, values) => {
+  get: vi.fn(),
+  insert: vi.fn().mockImplementation(async (table, values) => {
     if (table === 'profileSettings') {
       return [{ ...values }]
     }
     return []
   }),
-  update: mock(),
-  query: mock(),
-  count: mock(),
+  update: vi.fn(),
+  query: vi.fn(),
+  count: vi.fn(),
   db: {} as any,
-  raw: mock()
+  raw: vi.fn()
 } as unknown as TwakeDBMinimal
 type useProfileCommonSettings = {
   displayName: boolean
@@ -265,8 +265,8 @@ const mockTwakeDB = (
 
 type MatrixDBMinimal = Omit<MatrixDB, 'set'>
 const matrixDBMock: MatrixDBMinimal = {
-  get: mock(),
-  delete: mock()
+  get: vi.fn(),
+  delete: vi.fn()
 } as unknown as MatrixDBMinimal
 type useProfileMatrix = { displayName: boolean; avatar: boolean }
 const useProfileMatrixDefaults: useProfileMatrix = {
@@ -311,7 +311,7 @@ const mockMatrix = (
 }
 
 const addressBookServiceMock = {
-  list: mock()
+  list: vi.fn()
 }
 type useProfileAddressBook = { displayName: boolean }
 const useProfileAddressBookDefaults: useProfileAddressBook = {
@@ -380,7 +380,7 @@ const createService = (
 }
 
 beforeEach(() => {
-  mock.clearAllMocks()
+  vi.clearAllMocks()
   mockMatrix()
   mockUserDB()
   mockTwakeDB()
@@ -7264,7 +7264,7 @@ describe('User Info Service getBatch', () => {
   const MXID_3 = '@user3:docker.localhost'
 
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('with the rows of the directory already read', () => {
@@ -7302,7 +7302,7 @@ describe('User Info Service getBatch', () => {
       const searched = await svc.getBatch([MXID_1, MXID_2], MXID_3)
       expect(userDBMock.get).toHaveBeenCalledTimes(1)
 
-      mock.clearAllMocks()
+      vi.clearAllMocks()
       stubOtherSources()
       const reused = await svc.getBatch([MXID_1, MXID_2], MXID_3, [
         ...rows.map((row) => ({ ...row, displayName: 'not used' })),

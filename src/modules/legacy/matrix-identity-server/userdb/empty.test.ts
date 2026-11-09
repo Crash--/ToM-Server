@@ -1,7 +1,8 @@
 import { getLogger, type TwakeLogger } from '../../logger'
 import defaultConfig from '../../defaultConfig.json'
 import UserDBEmpty from './empty'
-import { afterAll, describe, expect, it } from 'bun:test'
+import { afterAll, describe, expect, it } from 'vitest'
+import { withDone } from '../../with-done'
 
 const logger: TwakeLogger = getLogger()
 
@@ -13,7 +14,7 @@ describe('Empty user DB', () => {
     logger.close()
   })
 
-  it('should return result', (done) => {
+  it('should return result', withDone((done) => {
     userDB = new UserDBEmpty(
       {
         ...defaultConfig,
@@ -45,5 +46,5 @@ describe('Empty user DB', () => {
           .catch(done)
       })
       .catch(done)
-  })
+  }))
 })

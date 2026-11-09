@@ -6,7 +6,7 @@ import DefaultConfig from '../../defaultConfig.json'
 import { type Config } from '../types'
 import { resetPolicies } from './_computePolicies'
 import Terms from './index'
-import { afterAll, beforeAll, describe, expect, it, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it, test } from 'vitest'
 
 const policies = {
   privacy_policy: {

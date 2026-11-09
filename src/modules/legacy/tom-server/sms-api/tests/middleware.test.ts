@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, test } from "bun:test"
+import { beforeEach, describe, expect, it, test, vi } from "vitest"
 import SmsApiMiddleware from '../middlewares'
 import type { Response, NextFunction } from 'express'
 import type { AuthRequest } from '../../types'
@@ -7,7 +7,7 @@ import { getLogger } from '../../../logger'
 describe('the SMS API middleware', () => {
   let mockRequest: Partial<AuthRequest>
   let mockResponse: Partial<Response>
-  const nextFunction: NextFunction = mock()
+  const nextFunction: NextFunction = vi.fn()
   const logger = getLogger()
 
   const smsApiMiddlewareMock = new SmsApiMiddleware(logger)
@@ -17,8 +17,8 @@ describe('the SMS API middleware', () => {
 
     mockRequest = {}
     mockResponse = {
-      status: mock().mockReturnThis(),
-      json: mock().mockReturnThis()
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis()
     }
   })
 

@@ -1,10 +1,10 @@
-import { describe, expect, it, mock } from 'bun:test'
+import { describe, expect, it, vi } from 'vitest'
 import { Config } from '../../types'
 import EmailService from './email-service'
 
-const sendMailMock = mock()
-mock.module('nodemailer', () => ({
-  createTransport: mock().mockImplementation(() => ({
+const sendMailMock = vi.fn()
+vi.mock('nodemailer', () => ({
+  createTransport: vi.fn().mockImplementation(() => ({
     sendMail: sendMailMock
   }))
 }))

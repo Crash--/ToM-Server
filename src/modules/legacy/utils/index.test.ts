@@ -1,6 +1,7 @@
 import type http from "node:http";
 import querystring from "node:querystring";
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, test, vi } from "vitest";
+import { withDone } from "../with-done";
 import type { TwakeLogger } from "../logger";
 import type { Request, Response } from "express";
 import { epoch, isMatrixId, isValidUrl, jsonContent, send, toMatrixId, validateParameters } from "./index";
@@ -11,15 +12,15 @@ describe("Utility Functions", () => {
 
   beforeEach(() => {
     mockResponse = {
-      writeHead: mock(),
-      write: mock(),
-      end: mock(),
+      writeHead: vi.fn(),
+      write: vi.fn(),
+      end: vi.fn(),
     };
 
     mockLogger = {
-      error: mock(),
-      warn: mock(),
-      log: mock(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      log: vi.fn(),
     } as unknown as TwakeLogger;
   });
 
@@ -40,7 +41,7 @@ describe("Utility Functions", () => {
   });
 
   describe("jsonContent", () => {
-    it("should parse JSON content and call the callback", (done) => {
+    it("should parse JSON content and call the callback", withDone((done) => {
       const req = {
         headers: { "content-type": "application/json" },
         body: { key: "value" },
@@ -58,9 +59,9 @@ describe("Utility Functions", () => {
         expect(obj).toEqual({ key: "value" });
         done();
       });
-    });
+    }));
 
-    it("should handle form-urlencoded content", (done) => {
+    it("should handle form-urlencoded content", withDone((done) => {
       const req = {
         headers: { "content-type": "application/x-www-form-urlencoded" },
         on: (event: string, callback: any) => {
@@ -77,7 +78,7 @@ describe("Utility Functions", () => {
         expect(obj).toEqual({ key: "value" });
         done();
       });
-    });
+    }));
 
     it("should handle JSON parsing errors", () => {
       const req = {
@@ -130,7 +131,7 @@ describe("Utility Functions", () => {
   describe("epoch", () => {
     it("should return the current timestamp", () => {
       const now = Date.now();
-      spyOn(Date, "now").mockReturnValue(now);
+      vi.spyOn(Date, "now").mockReturnValue(now);
 
       expect(epoch()).toBe(now);
     });

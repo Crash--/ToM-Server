@@ -1,6 +1,6 @@
-import { afterEach, beforeAll, describe, expect, it, type Mock, mock } from "bun:test";
 import { Writable } from "node:stream";
 
+import { afterEach, beforeAll, describe, expect, it, type Mock, vi } from "vitest";
 import { createLogger, transports } from "winston";
 
 import { BAD_GATEWAY, NOT_FOUND } from "../../errors/error-codes";
@@ -52,7 +52,7 @@ const roomOk = (): Response =>
 type FetchMock = Mock<(url: string, init: RequestInit) => Promise<Response>>;
 
 const mockFetch = (...results: Array<Response | Error>): FetchMock => {
-  const fetchMock: FetchMock = mock();
+  const fetchMock: FetchMock = vi.fn();
   for (const result of results) {
     if (result instanceof Error) {
       fetchMock.mockRejectedValueOnce(result);

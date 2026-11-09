@@ -1,6 +1,5 @@
-import { describe, expect, it, type Mock, mock } from "bun:test";
-
 import type { NextFunction, Request, RequestHandler, Response } from "express";
+import { describe, expect, it, type Mock, vi } from "vitest";
 import { createLogger } from "winston";
 
 import { DomainError } from "../../errors/domain-error";
@@ -36,10 +35,10 @@ const setup = (email: string | null): Setup => {
     },
     silentLogger,
   );
-  const createRoom = mock(() => Promise.resolve(room));
+  const createRoom = vi.fn(() => Promise.resolve(room));
   service.createRoom = createRoom;
 
-  const resolveEmail = mock(() => Promise.resolve(email));
+  const resolveEmail = vi.fn(() => Promise.resolve(email));
 
   return {
     service,
@@ -75,7 +74,7 @@ describe("createVisioRoomController", () => {
   it.each([
     null,
     "",
-  ])("should throw UNPROCESSABLE when the user has no single email (%p)", async (email) => {
+  ])("should throw UNPROCESSABLE when the user has no single email (%j)", async (email) => {
     // Arrange
     const { service, deps, createRoom } = setup(email);
 

@@ -4,33 +4,33 @@ import bodyParser from 'body-parser'
 import router, { PATH } from '../routes'
 import { TwakeLogger } from '../../../logger'
 import supertest from 'supertest'
-import { describe, expect, it, mock, test } from 'bun:test'
+import { describe, expect, it, test, vi } from 'vitest'
 
 const app = express()
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  error: mock(),
-  warn: mock(),
-  info: mock(),
-  debug: mock(),
-  silly: mock()
+  error: vi.fn(),
+  warn: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+  silly: vi.fn()
 }
 
-const authenticatorMock = mock()
+const authenticatorMock = vi.fn()
   .mockImplementation((_req, _res, callbackMethod) => {
     callbackMethod({ sub: 'test' }, 'test')
   })
 
-mock.module('../middlewares/index.ts', () => {
+vi.mock('../middlewares/index.ts', () => {
   const passiveMiddlewareMock = (
     _req: AuthRequest,
     _res: Response,
@@ -72,7 +72,7 @@ describe('the Addressbook API controller', () => {
       const contacts = [
         { id: 'test1', mxid: '@test1:server.com', display_name: 'Test One' }
       ]
-      const getBatch = mock(async () => new Map())
+      const getBatch = vi.fn(async () => new Map())
       const rowsApp = express()
       rowsApp.use(
         router(
@@ -109,7 +109,7 @@ describe('the Addressbook API controller', () => {
     })
 
     it('should read only the personal contacts with ?personal=true', async () => {
-      const list = mock(async (owner: string) => ({
+      const list = vi.fn(async (owner: string) => ({
         id: 'addressbookId',
         owner,
         contacts: []

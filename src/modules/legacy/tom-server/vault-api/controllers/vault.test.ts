@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from "bun:test"
+import { afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from "vitest"
 import { type NextFunction, type Request, type Response } from 'express'
 import { type TwakeDB } from '../../types'
 import { type tokenDetail } from '../middlewares/auth'
@@ -18,14 +18,14 @@ interface ITestRequest extends Partial<Request> {
 
 describe('Vault controllers', () => {
   const dbManager: Partial<TwakeDB> = {
-    get: mock(),
-    insert: mock(),
-    deleteWhere: mock(),
-    update: mock()
+    get: vi.fn(),
+    insert: vi.fn(),
+    deleteWhere: vi.fn(),
+    update: vi.fn()
   }
   let mockRequest: ITestRequest
   let mockResponse: Partial<Response>
-  const nextFunction: NextFunction = mock()
+  const nextFunction: NextFunction = vi.fn()
 
   beforeAll(() => {
     mockRequest = {
@@ -43,20 +43,20 @@ describe('Vault controllers', () => {
 
     mockResponse = {
       statusCode: undefined,
-      status: mock().mockImplementation((code: number) => {
+      status: vi.fn().mockImplementation((code: number) => {
         mockResponse.statusCode = code
         return mockResponse
       }),
-      json: mock().mockReturnValue(mockResponse),
-      writeHead: mock(),
-      write: mock(),
-      send: mock(),
-      end: mock()
+      json: vi.fn().mockReturnValue(mockResponse),
+      writeHead: vi.fn(),
+      write: vi.fn(),
+      send: vi.fn(),
+      end: vi.fn()
     }
   })
 
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
@@ -77,8 +77,8 @@ describe('Vault controllers', () => {
 
   // Testing saveRecoveryWords
   it('should return response with status code 201 on save success', async () => {
-    spyOn(dbManager, 'insert').mockResolvedValue([{ words }])
-    spyOn(dbManager, 'get').mockResolvedValue([])
+    vi.spyOn(dbManager, 'insert').mockResolvedValue([{ words }])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([])
     const handler: expressAppHandler = saveRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -87,8 +87,8 @@ describe('Vault controllers', () => {
 
   it('should call next function to throw error on saving failed', async () => {
     const errorMsg = 'Insert failed'
-    spyOn(dbManager, 'insert').mockRejectedValue(new Error(errorMsg))
-    spyOn(dbManager, 'get').mockResolvedValue([])
+    vi.spyOn(dbManager, 'insert').mockRejectedValue(new Error(errorMsg))
+    vi.spyOn(dbManager, 'get').mockResolvedValue([])
     const handler: expressAppHandler = saveRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -96,7 +96,7 @@ describe('Vault controllers', () => {
   })
 
   it('should return a 409 response when recovery words already exists', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([{ words: 'Another sentence for the same user' }])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([{ words: 'Another sentence for the same user' }])
     const handler: expressAppHandler = saveRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -105,7 +105,7 @@ describe('Vault controllers', () => {
   })
 
   it('should return a 400 error if the body does not contain recovery words', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([])
     const handler: expressAppHandler = saveRecoveryWords(dbManager as TwakeDB)
     const emptyRequest = { ...mockRequest, body: {} }
     handler(emptyRequest as Request, mockResponse as Response, nextFunction)
@@ -117,7 +117,7 @@ describe('Vault controllers', () => {
   // Testing getRecoveryWords
 
   it('should return response with status code 200 on get success', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([{ words }])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([{ words }])
     const handler: expressAppHandler = getRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -125,7 +125,7 @@ describe('Vault controllers', () => {
   })
 
   it('should call next function to throw not found error when no result', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([])
     const handler: expressAppHandler = getRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -135,7 +135,7 @@ describe('Vault controllers', () => {
   })
 
   it('should call next function to throw conflict error when duplicate results', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([
+    vi.spyOn(dbManager, 'get').mockResolvedValue([
         { words },
         { words: 'Another sentence for the same user' }
       ])
@@ -149,7 +149,7 @@ describe('Vault controllers', () => {
 
   it('should call next function to throw not found error on getting failed', async () => {
     const errorMsg = 'Get failed'
-    spyOn(dbManager, 'get').mockRejectedValue(new Error(errorMsg))
+    vi.spyOn(dbManager, 'get').mockRejectedValue(new Error(errorMsg))
     const handler: expressAppHandler = getRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -157,7 +157,7 @@ describe('Vault controllers', () => {
   })
 
   it('should return a 200 response on update success', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([{ userId: 'test', words: 'some recovery words' }])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([{ userId: 'test', words: 'some recovery words' }])
     const handler: expressAppHandler = updateRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -165,7 +165,7 @@ describe('Vault controllers', () => {
   })
 
   it('should throw a 404 error when no recovery words were found', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([])
     const handler: expressAppHandler = updateRecoveryWords(dbManager as TwakeDB)
     handler(mockRequest as Request, mockResponse as Response, nextFunction)
     await new Promise((resolve) => setTimeout(resolve))
@@ -173,7 +173,7 @@ describe('Vault controllers', () => {
   })
 
   it('should throw a 400 error when the body does not contain recovery words', async () => {
-    spyOn(dbManager, 'get').mockResolvedValue([{ userId: 'test' }])
+    vi.spyOn(dbManager, 'get').mockResolvedValue([{ userId: 'test' }])
     const handler: expressAppHandler = updateRecoveryWords(dbManager as TwakeDB)
     const emptyRequest = { ...mockRequest, body: {} }
     handler(emptyRequest as Request, mockResponse as Response, nextFunction)

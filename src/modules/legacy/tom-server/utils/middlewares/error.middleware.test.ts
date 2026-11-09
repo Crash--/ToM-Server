@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import { type NextFunction, type Request, type Response } from 'express'
 import errorMiddleware from './error.middleware'
@@ -7,7 +7,7 @@ describe('Error middleware', () => {
   let mockRequest: Partial<Request>
   let mockResponse: Partial<Response>
   const mockLogger: Partial<TwakeLogger> = {
-    error: mock()
+    error: vi.fn()
   }
   let errorMock: (
     error: Error & { status?: number },
@@ -16,13 +16,13 @@ describe('Error middleware', () => {
     next: NextFunction
   ) => void
 
-  const nextFunction: NextFunction = mock()
+  const nextFunction: NextFunction = vi.fn()
 
   beforeEach(() => {
     mockRequest = {}
     mockResponse = {
-      json: mock(),
-      status: mock().mockReturnThis()
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis()
     }
 
     errorMock = errorMiddleware(mockLogger as TwakeLogger)

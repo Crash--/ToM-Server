@@ -5,7 +5,8 @@ import defaultConfig from '../../defaultConfig.json'
 import IdentityServerDB from '../db'
 import { type Config } from '../types'
 import updateKey from './updateKey'
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { withDone } from '../../with-done'
 
 const conf: Config = {
   ...defaultConfig,
@@ -23,7 +24,7 @@ describe('updateHashes', () => {
   let currentKey: { publicKey: string; privateKey: string; keyId: string }
   let previousKey: { publicKey: string; privateKey: string; keyId: string }
 
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     db = new IdentityServerDB(conf, logger)
     db.ready
       .then(() => {
@@ -56,7 +57,7 @@ describe('updateHashes', () => {
       .catch((e) => {
         done(e)
       })
-  })
+  }))
 
   afterAll(() => {
     clearTimeout(db.cleanJob)
@@ -67,7 +68,7 @@ describe('updateHashes', () => {
     logger.close()
   })
 
-  it('should be able to generate new key and update concerned fields', (done) => {
+  it('should be able to generate new key and update concerned fields', withDone((done) => {
     updateKey(db, logger).catch((e) => {
       done(e)
     })
@@ -98,5 +99,5 @@ describe('updateHashes', () => {
           done(e)
         })
     }, 1000)
-  })
+  }))
 })

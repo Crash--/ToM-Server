@@ -12,7 +12,7 @@
     "strict": true,
     "skipLibCheck": true,
     "types": [
-      "bun"
+      "node"
     ],
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
@@ -31,7 +31,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "bunup.config.ts"
+    "dist"
   ]
 }

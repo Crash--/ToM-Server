@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import type { NextFunction, Request, Response } from 'express'
 import type { AuthRequest } from '../../types'
@@ -6,14 +6,14 @@ import authMiddleware from './auth.middleware'
 
 let mockRequest: Partial<Request>
 let mockResponse: Partial<Response>
-const nextFunction: NextFunction = mock()
+const nextFunction: NextFunction = vi.fn()
 let authMock: (
   req: AuthRequest,
   res: Response,
   cb: (data: any, token: string) => void
 ) => void
 
-const authenticatorMock = mock()
+const authenticatorMock = vi.fn()
   .mockImplementation(
     (
       req: AuthRequest,
@@ -27,14 +27,14 @@ const authenticatorMock = mock()
 beforeEach(() => {
   mockRequest = {}
   mockResponse = {
-    json: mock(),
-    status: mock().mockReturnThis()
+    json: vi.fn(),
+    status: vi.fn().mockReturnThis()
   }
 
-  spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => {})
 
   authMock = authMiddleware(authenticatorMock, {
-    error: mock()
+    error: vi.fn()
   } as unknown as TwakeLogger) as any
 })
 

@@ -1,18 +1,17 @@
-import { resolve } from 'path'
-import { beforeEach, describe, expect, it, mock, test, type Mock } from 'bun:test'
+import { beforeEach, describe, expect, it, test, type Mock, vi } from 'vitest'
 import { _search } from '../_search'
 import { send, isMatrixId } from '../../../../utils'
 
 // Mock @twake/utils
-mock.module(resolve(import.meta.dir, '../../../../utils/index'), () => ({
-  send: mock(),
-  errMsg: mock((msg) => ({ error: msg })),
-  toMatrixId: mock((uid, server) => `@${uid}:${server}`),
-  isMatrixId: mock((id) => {
+vi.mock('../../../../utils/index', () => ({
+  send: vi.fn(),
+  errMsg: vi.fn((msg) => ({ error: msg })),
+  toMatrixId: vi.fn((uid, server) => `@${uid}:${server}`),
+  isMatrixId: vi.fn((id) => {
     if (!id || typeof id !== 'string') return false
     return /^@[^:]+:[^:]+$/.test(id)
   }),
-  getLocalPart: mock((mxid) => {
+  getLocalPart: vi.fn((mxid) => {
     if (!mxid) return null
     const match = mxid.match(/^@?([^:]+)/)
     return match ? match[1] : null
@@ -20,8 +19,8 @@ mock.module(resolve(import.meta.dir, '../../../../utils/index'), () => ({
 }))
 
 // Mock service functions
-const mockAddressbookList = mock()
-const mockUserInfoGetBatch = mock()
+const mockAddressbookList = vi.fn()
+const mockUserInfoGetBatch = vi.fn()
 
 // Helper to create user info from mxid
 const createUserInfo = (mxid: string) => {
@@ -52,21 +51,21 @@ const createMockServices = () => ({
 
 describe('_search factory', () => {
   const logger = {
-    debug: mock(),
-    warn: mock(),
-    error: mock(),
-    info: mock(),
-    silly: mock()
+    debug: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+    silly: vi.fn()
   }
 
   const idServerMock = {
     userDB: {
-      match: mock().mockResolvedValue([{ uid: 'drwho' }])
+      match: vi.fn().mockResolvedValue([{ uid: 'drwho' }])
     },
     db: {},
     matrixDb: {
       db: {
-        match: mock().mockResolvedValue([{ user_id: '@drwho:server' }])
+        match: vi.fn().mockResolvedValue([{ user_id: '@drwho:server' }])
       }
     },
     conf: {
@@ -78,7 +77,7 @@ describe('_search factory', () => {
   }
 
   beforeEach(() => {
-    mock.clearAllMocks()
+    vi.clearAllMocks()
 
     // Default mock: addressbook returns empty
     mockAddressbookList.mockResolvedValue({ contacts: [] })
@@ -136,11 +135,11 @@ describe('_search factory', () => {
       const emptyServer = {
         ...idServerMock,
         userDB: {
-          match: mock().mockResolvedValue([])
+          match: vi.fn().mockResolvedValue([])
         },
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue([])
+            match: vi.fn().mockResolvedValue([])
           }
         }
       }
@@ -224,7 +223,7 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue([{ user_id: 'localuser' }])
+            match: vi.fn().mockResolvedValue([{ user_id: 'localuser' }])
           }
         }
       }
@@ -260,11 +259,11 @@ describe('_search factory', () => {
           features: { user_directory: { enabled: false } }
         },
         userDB: {
-          match: mock().mockResolvedValue([])
+          match: vi.fn().mockResolvedValue([])
         },
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue([{ user_id: '@drwho:server' }])
+            match: vi.fn().mockResolvedValue([{ user_id: '@drwho:server' }])
           }
         }
       }
@@ -298,11 +297,11 @@ describe('_search factory', () => {
           features: { user_directory: { enabled: true } }
         },
         userDB: {
-          match: mock().mockResolvedValue([])
+          match: vi.fn().mockResolvedValue([])
         },
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue([{ user_id: '@drwho:server' }])
+            match: vi.fn().mockResolvedValue([{ user_id: '@drwho:server' }])
           }
         }
       }
@@ -331,7 +330,7 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock().mockRejectedValue(new Error('MatrixDb error'))
+            match: vi.fn().mockRejectedValue(new Error('MatrixDb error'))
           }
         }
       }
@@ -373,7 +372,7 @@ describe('_search factory', () => {
           features: { user_directory: { enabled: false } }
         },
         userDB: {
-          match: mock().mockResolvedValue([{ uid: 'drwho' }])
+          match: vi.fn().mockResolvedValue([{ uid: 'drwho' }])
         }
       }
 
@@ -401,7 +400,7 @@ describe('_search factory', () => {
       const brokenUserServer = {
         ...idServerMock,
         userDB: {
-          match: mock().mockRejectedValue(new Error('UserDB error'))
+          match: vi.fn().mockRejectedValue(new Error('UserDB error'))
         }
       }
 
@@ -475,8 +474,8 @@ describe('_search factory', () => {
 
       const emptyDbServer = {
         ...idServerMock,
-        userDB: { match: mock().mockResolvedValue([]) },
-        matrixDb: { db: { match: mock().mockResolvedValue([]) } }
+        userDB: { match: vi.fn().mockResolvedValue([]) },
+        matrixDb: { db: { match: vi.fn().mockResolvedValue([]) } }
       }
 
       const { addressbookService, userInfoService } = createMockServices()
@@ -583,11 +582,11 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue([{ user_id: '@active:server' }])
+            match: vi.fn().mockResolvedValue([{ user_id: '@active:server' }])
           }
         },
         userDB: {
-          match: mock()
+          match: vi.fn()
             .mockResolvedValue([{ uid: 'active' }, { uid: 'inactive' }])
         }
       }
@@ -620,11 +619,11 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue([{ user_id: '@drwho:server' }])
+            match: vi.fn().mockResolvedValue([{ user_id: '@drwho:server' }])
           }
         },
         userDB: {
-          match: mock().mockResolvedValue([{ uid: 'drwho' }])
+          match: vi.fn().mockResolvedValue([{ uid: 'drwho' }])
         }
       }
 
@@ -779,11 +778,11 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock().mockRejectedValue(new Error('MatrixDb failed'))
+            match: vi.fn().mockRejectedValue(new Error('MatrixDb failed'))
           }
         },
         userDB: {
-          match: mock().mockResolvedValue([{ uid: 'success' }])
+          match: vi.fn().mockResolvedValue([{ uid: 'success' }])
         }
       }
 
@@ -817,7 +816,7 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock()
+            match: vi.fn()
               .mockResolvedValue([
                 { user_id: '@user1:server' },
                 { user_id: '@user2:server' },
@@ -826,7 +825,7 @@ describe('_search factory', () => {
           }
         },
         userDB: {
-          match: mock()
+          match: vi.fn()
             .mockResolvedValue([
               { uid: 'user1' },
               { uid: 'user2' },
@@ -870,7 +869,7 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock()
+            match: vi.fn()
               .mockResolvedValue([
                 { user_id: '@user1:server' },
                 { user_id: '@user2:server' },
@@ -881,7 +880,7 @@ describe('_search factory', () => {
           }
         },
         userDB: {
-          match: mock().mockResolvedValue([])
+          match: vi.fn().mockResolvedValue([])
         }
       }
 
@@ -942,7 +941,7 @@ describe('_search factory', () => {
         ...idServerMock,
         matrixDb: {
           db: {
-            match: mock().mockResolvedValue(
+            match: vi.fn().mockResolvedValue(
               Array.from({ length: 50 }, (_, i) => ({
                 user_id: `@user${i}:server`
               }))
@@ -950,7 +949,7 @@ describe('_search factory', () => {
           }
         },
         userDB: {
-          match: mock().mockResolvedValue([])
+          match: vi.fn().mockResolvedValue([])
         }
       }
 

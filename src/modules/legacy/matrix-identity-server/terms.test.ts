@@ -8,18 +8,22 @@ import defaultConfig from './__testData__/termsConf.json'
 import IdServer from './index'
 import { type Policies } from './terms'
 import { type Config } from './types'
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+import { withDone } from '../with-done'
 
-const sendMailMock = mock()
-const createTransportMock = mock().mockImplementation(() => ({
-  sendMail: sendMailMock
+const { sendMailMock, createTransportMock } = vi.hoisted(() => {
+  const sendMailMock = vi.fn()
+  const createTransportMock = vi.fn().mockImplementation(() => ({
+    sendMail: sendMailMock
+  }))
+  return { sendMailMock, createTransportMock }
+})
+
+vi.mock('node-fetch', () => ({
+  default: vi.fn()
 }))
 
-mock.module('node-fetch', () => ({
-  default: mock()
-}))
-
-mock.module('nodemailer', () => ({
+vi.mock('nodemailer', () => ({
   default: { createTransport: createTransportMock },
   createTransport: createTransportMock
 }))
@@ -34,7 +38,7 @@ let idServer: IdServer
 let validToken: string
 let app: express.Application
 
-beforeAll((done) => {
+beforeAll(withDone((done) => {
   const conf: Config = {
     ...defaultConfig,
     database_engine: 'sqlite',
@@ -66,10 +70,10 @@ beforeAll((done) => {
     .catch((e) => {
       done(e)
     })
-})
+}))
 
 beforeEach(() => {
-  mock.clearAllMocks()
+  vi.clearAllMocks()
   createTransportMock.mockImplementation(() => ({
     sendMail: sendMailMock
   }))

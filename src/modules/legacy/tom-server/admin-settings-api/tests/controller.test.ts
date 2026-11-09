@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn, type Mock } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, type Mock, type MockInstance, vi } from 'vitest'
 import AdminSettingsrController from '../controllers'
 import conf from '../../../defaultConfig.json'
 
@@ -9,9 +9,9 @@ interface MockLogger {
 }
 
 const makeLogger = (): MockLogger => ({
-  info: mock(),
-  warn: mock(),
-  error: mock()
+  info: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn()
 })
 
 describe('AdminSettingsrController', () => {
@@ -20,7 +20,7 @@ describe('AdminSettingsrController', () => {
   let req: any
   let res: any
   let next: Mock<(...args: any[]) => any>
-  let updateUserSpy: Mock<(...args: any[]) => any>
+  let updateUserSpy: MockInstance<(...args: any[]) => any>
 
   beforeEach(() => {
     logger = makeLogger()
@@ -31,20 +31,20 @@ describe('AdminSettingsrController', () => {
       body: { displayName: 'Alice', avatarUrl: 'http://example.com/avatar.png' }
     }
     res = {
-      status: mock().mockReturnThis(),
-      json: mock()
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn()
     }
-    next = mock()
+    next = vi.fn()
 
     // Mock updateUserInformation to avoid real HTTP calls
-    updateUserSpy = spyOn(
+    updateUserSpy = vi.spyOn(
       (controller as any).adminService,
       'updateUserInformation'
     ).mockResolvedValue(undefined)
   })
 
   afterEach(() => {
-    mock.restore()
+    vi.restoreAllMocks()
   })
 
   it('should return 400 if userId is missing', async () => {

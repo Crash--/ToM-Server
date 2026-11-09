@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
+import { withDone } from '../../../with-done'
 import { type ConfigDescription } from '../../../../config-parser'
 import { IdentityServerDb, type MatrixDB } from '../../../matrix-identity-server'
 import express from 'express'
@@ -12,12 +13,12 @@ import router, { PATH } from '../routes'
 
 const app = express()
 
-spyOn(IdentityServerDb.prototype, 'get')
+vi.spyOn(IdentityServerDb.prototype, 'get')
   .mockResolvedValue([{ data: '"test"' }])
 
 const idServer = new IdServer(
   {
-    get: mock()
+    get: vi.fn()
   } as unknown as MatrixDB,
   {
     qr_code_url: 'https://example.com/'
@@ -44,15 +45,15 @@ const idServer = new IdServer(
 )
 
 beforeEach(() => {
-  spyOn(console, 'warn').mockImplementation(() => {})
+  vi.spyOn(console, 'warn').mockImplementation(() => {})
   controllerGetSpy.mockClear()
 })
 
-const controllerGetSpy = mock().mockImplementation((_req, res, _next) => {
+const controllerGetSpy = vi.fn().mockImplementation((_req, res, _next) => {
   res.status(200).send('OK')
 })
 
-mock.module('../controllers/index.ts', () => {
+vi.mock('../controllers/index.ts', () => {
   return {
     default: function () {
       return {
@@ -63,7 +64,7 @@ mock.module('../controllers/index.ts', () => {
 })
 
 describe('the QRCode API router', () => {
-  beforeAll((done) => {
+  beforeAll(withDone((done) => {
     idServer.ready
       .then(() => {
         app.use(router(idServer, {} as unknown as Config))
@@ -72,7 +73,7 @@ describe('the QRCode API router', () => {
       .catch((e) => {
         done(e)
       })
-  })
+  }))
 
   afterAll(() => {
     idServer.cleanJobs()

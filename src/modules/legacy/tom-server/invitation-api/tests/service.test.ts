@@ -1,36 +1,36 @@
-import { beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 import { type TwakeLogger } from '../../../logger'
 import Service from '../services'
 import { Config, TwakeDB } from '../../types'
 
 const dbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const loggerMock = {
-  info: mock(),
-  error: mock(),
-  debug: mock(),
-  warn: mock(),
-  silly: mock()
+  info: vi.fn(),
+  error: vi.fn(),
+  debug: vi.fn(),
+  warn: vi.fn(),
+  silly: vi.fn()
 }
 
 const AUTHORIZATION = 'Bearer test'
 
 beforeEach(() => {
-  mock.clearAllMocks()
+  vi.clearAllMocks()
 })
 
-const sendSMSMock = mock()
-const sendEmailMock = mock()
-const tokenAccessMock = mock().mockResolvedValue('test')
+const sendSMSMock = vi.fn()
+const sendEmailMock = vi.fn()
+const tokenAccessMock = vi.fn().mockResolvedValue('test')
 
-mock.module('../../utils/services/notification-service.ts', () => ({
+vi.mock('../../utils/services/notification-service.ts', () => ({
   default: function () {
     return {
       sendSMS: sendSMSMock,
@@ -40,7 +40,7 @@ mock.module('../../utils/services/notification-service.ts', () => ({
   }
 }))
 
-mock.module('../../utils/services/token-service.ts', () => ({
+vi.mock('../../utils/services/token-service.ts', () => ({
   default: function () {
     return {
       getAccessTokenWithCreds: tokenAccessMock
@@ -48,35 +48,35 @@ mock.module('../../utils/services/token-service.ts', () => ({
   }
 }))
 
-mock.module('../../utils/helpers', () => ({
-  buildSmsBody: mock(() => 'SMS body'),
-  buildEmailBody: mock(() => 'Email body')
+vi.mock('../../utils/helpers', () => ({
+  buildSmsBody: vi.fn(() => 'SMS body'),
+  buildEmailBody: vi.fn(() => 'Email body')
 }))
 
-mock.module('../../user-info-api/services', () => ({
-  default: mock().mockImplementation(() => {
+vi.mock('../../user-info-api/services', () => ({
+  default: vi.fn().mockImplementation(function () {
     return {
-      get: mock().mockResolvedValue({ display_name: 'Test User' })
+      get: vi.fn().mockResolvedValue({ display_name: 'Test User' })
     }
   })
 }))
 
 const userdbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 const matrixdbMock = {
-  get: mock(),
-  getAll: mock(),
-  insert: mock(),
-  update: mock(),
-  deleteEqual: mock(),
-  getCount: mock()
+  get: vi.fn(),
+  getAll: vi.fn(),
+  insert: vi.fn(),
+  update: vi.fn(),
+  deleteEqual: vi.fn(),
+  getCount: vi.fn()
 }
 
 describe('the Invitation API service', () => {
@@ -190,9 +190,9 @@ describe('the Invitation API service', () => {
     })
 
     it('should throw an error if the database operation fails', async () => {
-      global.fetch = mock().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         status: 200,
-        json: mock().mockResolvedValue({ room_id: 'test' })
+        json: vi.fn().mockResolvedValue({ room_id: 'test' })
       })
 
       dbMock.insert.mockRejectedValue(new Error('test'))
@@ -209,7 +209,7 @@ describe('the Invitation API service', () => {
 
   describe('the accept method', () => {
     it('should update the invitation status and matrix_id', async () => {
-      global.fetch = mock().mockImplementation((url) => {
+      global.fetch = vi.fn().mockImplementation((url) => {
         if (url.includes('m.direct')) {
           return Promise.resolve({
             status: 200
@@ -218,7 +218,7 @@ describe('the Invitation API service', () => {
 
         return Promise.resolve({
           status: 200,
-          json: mock().mockResolvedValue({ room_id: 'test' })
+          json: vi.fn().mockResolvedValue({ room_id: 'test' })
         })
       })
 
@@ -250,9 +250,9 @@ describe('the Invitation API service', () => {
     })
 
     it('should create a new room', async () => {
-      global.fetch = mock().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         status: 200,
-        json: mock().mockResolvedValue({ room_id: 'test' })
+        json: vi.fn().mockResolvedValue({ room_id: 'test' })
       })
 
       dbMock.get.mockResolvedValue([
@@ -320,7 +320,7 @@ describe('the Invitation API service', () => {
     })
 
     it('should mark the new room as direct message', async () => {
-      global.fetch = mock().mockImplementation((url) => {
+      global.fetch = vi.fn().mockImplementation((url) => {
         if (url.includes('m.direct')) {
           return Promise.resolve({
             status: 200
@@ -329,7 +329,7 @@ describe('the Invitation API service', () => {
 
         return Promise.resolve({
           status: 200,
-          json: mock().mockResolvedValue({ room_id: 'test' })
+          json: vi.fn().mockResolvedValue({ room_id: 'test' })
         })
       })
 
@@ -367,7 +367,7 @@ describe('the Invitation API service', () => {
     })
 
     it('should support accepting an invitation to unknown 3pid address', async () => {
-      global.fetch = mock().mockImplementation((url) => {
+      global.fetch = vi.fn().mockImplementation((url) => {
         if (url.includes('m.direct')) {
           return Promise.resolve({
             status: 200
@@ -376,7 +376,7 @@ describe('the Invitation API service', () => {
 
         return Promise.resolve({
           status: 200,
-          json: mock().mockResolvedValue({ room_id: 'test' })
+          json: vi.fn().mockResolvedValue({ room_id: 'test' })
         })
       })
 
@@ -478,9 +478,9 @@ describe('the Invitation API service', () => {
     })
 
     it('should generate an invitation link without 3pid or medium', async () => {
-      global.fetch = mock().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         status: 200,
-        json: mock().mockResolvedValue({ room_id: 'test' })
+        json: vi.fn().mockResolvedValue({ room_id: 'test' })
       })
 
       dbMock.insert.mockResolvedValue({ id: 'test' })

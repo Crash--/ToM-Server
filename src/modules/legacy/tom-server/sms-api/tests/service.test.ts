@@ -1,14 +1,14 @@
-import { afterAll, beforeEach, describe, expect, it, mock, spyOn, test } from 'bun:test'
+import { afterAll, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import { getLogger } from '../../../logger'
 import fetch, { type Response } from 'node-fetch'
 import { type Config } from '../../types'
 import SmsService from '../services'
-mock.module('node-fetch', () => ({
-  default: mock(),
+vi.mock('node-fetch', () => ({
+  default: vi.fn(),
 }))
 
 beforeEach(() => {
-  spyOn(console, 'error').mockImplementation(() => {})
+  vi.spyOn(console, 'error').mockImplementation(() => {})
 })
 
 describe('the SMS service', () => {
